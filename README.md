@@ -4,7 +4,7 @@ A visual **Gazebo `.world` / `.sdf` file editor** built as a Next.js 14 (App Rou
 
 ## Tech Stack
 
-- **Next.js 14** (App Router, client components where needed)
+- **Next.js 16** (App Router, client components where needed)
 - **TypeScript**
 - **Three.js** + **@react-three/fiber** + **@react-three/drei** for 3D rendering
 - **Zustand** for state management with undo/redo history
