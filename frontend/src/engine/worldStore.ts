@@ -22,7 +22,84 @@ const createDefaultWorld = (): World => ({
     shadows: true,
     grid: true,
   },
-  models: [],
+  models: [
+    // Ground plane - required for realistic simulation
+    {
+      id: uuidv4(),
+      name: 'ground_plane',
+      type: 'model',
+      pose: {
+        position: [0, 0, 0],
+        rotation: [0, 0, 0],
+      },
+      scale: { x: 1, y: 1, z: 1 },
+      visible: true,
+      locked: false,
+      links: [
+        {
+          id: uuidv4(),
+          name: 'link',
+          type: 'link',
+          pose: {
+            position: [0, 0, 0],
+            rotation: [0, 0, 0],
+          },
+          scale: { x: 1, y: 1, z: 1 },
+          visible: true,
+          locked: false,
+          visuals: [
+            {
+              id: uuidv4(),
+              name: 'visual',
+              type: 'visual',
+              pose: {
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+              },
+              scale: { x: 1, y: 1, z: 1 },
+              visible: true,
+              locked: false,
+              geometry: {
+                type: 'plane',
+                normal: [0, 0, 1],
+                size: [500, 500, 0.1],
+              },
+              material: {
+                albedo: [0.8, 0.8, 0.8, 1],
+                roughness: 0.6,
+                metalness: 0,
+              },
+              castShadow: false,
+              receiveShadow: true,
+            },
+          ],
+          collisions: [
+            {
+              id: uuidv4(),
+              name: 'collision',
+              type: 'collision',
+              pose: {
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+              },
+              scale: { x: 1, y: 1, z: 1 },
+              visible: true,
+              locked: false,
+              geometry: {
+                type: 'plane',
+                normal: [0, 0, 1],
+                size: [500, 500, 0.1],
+              },
+            },
+          ],
+          sensors: [],
+        },
+      ],
+      joints: [],
+      plugins: [],
+      isStatic: true,
+    },
+  ],
   lights: [
     {
       id: uuidv4(),

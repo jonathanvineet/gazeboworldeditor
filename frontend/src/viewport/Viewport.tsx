@@ -1,6 +1,7 @@
 'use client'
 
-import { Canvas } from '@react-three/fiber'
+import { useState } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import {
   OrbitControls,
   Grid,
@@ -9,13 +10,45 @@ import {
   Environment,
   PerspectiveCamera,
 } from '@react-three/drei'
+import { useDrop } from 'react-dnd'
 import { useWorldStore } from '@/engine/worldStore'
+import type { AssetMetadata } from '@/lib/assetDatabase'
 
 export default function Viewport() {
   const { world } = useWorldStore()
+  const [dropIndicator, setDropIndicator] = useState<[number, number, number] | null>(null)
+
+  // Accept drag-drop from asset browser
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: 'asset',
+    drop: (asset: AssetMetadata, monitor) => {
+      const clientOffset = monitor.getClientOffset()
+      if (clientOffset) {
+        // TODO: Convert screen coordinates to world coordinates
+        console.log('Dropped asset:', asset.name, 'at', clientOffset)
+        setDropIndicator(null)
+      }
+    },
+    hover: (asset, monitor) => {
+      const clientOffset = monitor.getClientOffset()
+      if (clientOffset) {
+        setDropIndicator([clientOffset.x, clientOffset.y, 0])
+      }
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  }))
 
   return (
-    <div className="w-full h-full">
+    <div 
+      ref={drop}
+      className={`
+        w-full h-full
+        transition-colors
+        ${isOver ? 'bg-[#0e639c] bg-opacity-10' : ''}
+      `}
+    >
       <Canvas shadows>
         {/* Camera */}
         <PerspectiveCamera
@@ -66,13 +99,34 @@ export default function Viewport() {
         </GizmoHelper>
 
         {/* Scene Content */}
-        <SceneRenderer />
+        <SceneRenderer dropIndicator={dropIndicator} />
       </Canvas>
+
+      {/* Drop indicator overlay */}
+      {isOver && (
+        <div
+          className="
+            absolute
+            inset-0
+            border-2
+            border-dashed
+            border-[#0e639c]
+            pointer-events-none
+            flex
+            items-center
+            justify-center
+          "
+        >
+          <div className="text-sm text-[#0e639c] bg-black bg-opacity-50 px-3 py-1.5 rounded">
+            Drop to spawn model
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function SceneRenderer() {
+function SceneRenderer({ dropIndicator }: { dropIndicator: [number, number, number] | null }) {
   const { world, selectedEntity } = useWorldStore()
 
   return (

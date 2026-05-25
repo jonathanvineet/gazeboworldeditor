@@ -1,15 +1,17 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { Layout, Model } from 'flexlayout-react'
 import 'flexlayout-react/style/light.css'
 import { createLayoutModel, layoutColors } from '@/editor/layoutConfig'
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
+import { useWorldStore } from '@/engine/worldStore'
 import Viewport from '@/viewport/Viewport'
 import SceneTree from '@/panels/SceneTree'
 import Inspector from '@/panels/Inspector'
 import XMLEditor from '@/panels/XMLEditor'
 import Console from '@/panels/Console'
-import AssetBrowser from '@/panels/AssetBrowser'
+import { AssetBrowser } from '@/panels/AssetBrowser'
 import Toolbar from '@/editor/Toolbar'
 
 export default function EditorPage() {
@@ -18,6 +20,22 @@ export default function EditorPage() {
     const modelJson = createLayoutModel()
     return Model.fromJson(modelJson)
   }, [])
+
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts()
+
+  // Add ground plane on mount if not already present
+  const addDefaultGroundPlane = useWorldStore((state) => {
+    useEffect(() => {
+      const store = useWorldStore.getState()
+      const hasGroundPlane = store.world.models.some((m) => m.name === 'ground_plane')
+      
+      if (!hasGroundPlane) {
+        // TODO: Add ground plane model to scene
+        console.log('Ground plane would be added here')
+      }
+    }, [])
+  })
 
   const factory = (node: any) => {
     const component = node.getComponent()
