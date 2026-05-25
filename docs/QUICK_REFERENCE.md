@@ -1,53 +1,176 @@
-# Quick Reference - Gazebo Studio
+# Quick Reference - Phase A API
 
-## Running the App
-
-```bash
-# Install everything
-npm install && pip install -r backend/requirements.txt
-
-# Start dev environment (both frontend + backend)
-npm run dev
-
-# Access:
-# - Frontend: http://localhost:3000
-# - Backend: http://localhost:8000
-# - API Docs: http://localhost:8000/docs
+## Import EditorEngine
+```typescript
+import { getEditorEngine } from '@/engine/editorEngine'
+const engine = getEditorEngine()
 ```
 
-## File Locations
+## Import EventBus
+```typescript
+import { eventBus } from '@/engine/events'
+```
 
-| What | Where |
-|------|-------|
-| Type Definitions | `frontend/src/types/sdf.ts` |
-| State Management | `frontend/src/engine/worldStore.ts` |
-| SDF Parser | `frontend/src/sdf/parser.ts` |
-| SDF Serializer | `frontend/src/sdf/serializer.ts` |
-| Main UI Layout | `frontend/src/editor/layoutConfig.ts` |
-| Main Page | `frontend/src/app/page.tsx` |
-| 3D Viewport | `frontend/src/viewport/Viewport.tsx` |
-| Scene Hierarchy | `frontend/src/panels/SceneTree.tsx` |
-| Properties | `frontend/src/panels/Inspector.tsx` |
-| XML Editor | `frontend/src/panels/XMLEditor.tsx` |
-| Mesh Loader | `frontend/src/assets/loadMesh.ts` |
-| Backend Server | `backend/app/main.py` |
+---
 
-## Common Tasks
+## Selection API
+```typescript
+engine.selectEntity(id)
+engine.selectEntities([id1, id2])
+engine.addToSelection(id)
+engine.removeFromSelection(id)
+engine.clearSelection()
 
-### Add a New Entity Type
+engine.getSelectedEntity()
+engine.getSelectedEntities()
+```
 
-1. Add interface to `frontend/src/types/sdf.ts`:
-```ts
-export interface MyEntity extends BaseEntity {
-  type: "my_entity"
-  // ... fields
+---
+
+## Transform API
+```typescript
+engine.moveEntity(id, [x, y, z])
+engine.rotateEntity(id, [rx, ry, rz])
+engine.scaleEntity(id, [sx, sy, sz])
+```
+
+---
+
+## Entity Lifecycle
+```typescript
+engine.addModel(model)
+engine.addLight(light)
+engine.deleteEntity(id)
+engine.duplicateEntity(id)
+```
+
+---
+
+## Undo/Redo
+```typescript
+engine.undo()
+engine.redo()
+engine.canUndo()
+engine.canRedo()
+engine.getUndoDescription()
+engine.getRedoDescription()
+```
+
+---
+
+## Gizmo Control
+```typescript
+engine.selectGizmoMode('move' | 'rotate' | 'scale')
+engine.selectSpaceMode('world' | 'local')
+```
+
+---
+
+## Scene Access
+```typescript
+engine.getWorld()
+engine.getSceneHierarchy()
+engine.getModels()
+engine.getLights()
+```
+
+---
+
+## Event Listener Pattern
+```typescript
+const unsubscribe = eventBus.on('ENTITY_SELECTED', (payload) => {
+  // Update UI from payload
+})
+
+// Cleanup
+unsubscribe()
+```
+
+---
+
+## Common Events
+```typescript
+'ENTITY_CREATED'       // New entity added
+'ENTITY_DELETED'       // Entity removed
+'ENTITY_SELECTED'      // Entity selected
+'ENTITY_DESELECTED'    // Entity deselected
+'ENTITY_MOVED'         // Entity position changed
+'ENTITY_ROTATED'       // Entity rotation changed
+'ENTITY_SCALED'        // Entity scale changed
+'SCENE_CHANGED'        // Any scene change
+'UNDO'                 // Undo performed
+'REDO'                 // Redo performed
+'GIZMO_MODE_CHANGED'   // Gizmo mode changed
+'SPACE_MODE_CHANGED'   // World/Local space changed
+```
+
+---
+
+## Persistence
+```typescript
+const world = engine.exportWorld()  // Get world data
+engine.importWorld(world)            // Load world data
+```
+
+---
+
+## Debugging
+```typescript
+engine.getCommandHistory()
+engine.getCommandCount()
+eventBus.getHistory()
+eventBus.listenerCount()
+```
+
+---
+
+## Component Pattern
+
+```typescript
+export function MyComponent() {
+  const engine = getEditorEngine()
+  const [state, setState] = useState()
+
+  useEffect(() => {
+    // Listen to events
+    const unsub = eventBus.on('ENTITY_SELECTED', (payload) => {
+      setState(payload)
+    })
+
+    return unsub
+  }, [])
+
+  // Call engine methods
+  const handleClick = (id) => {
+    engine.selectEntity(id)
+  }
+
+  return <div onClick={() => handleClick('entity_1')}>Click me</div>
 }
 ```
 
-2. Update `World` interface to include it
-3. Update parser in `frontend/src/sdf/parser.ts`
-4. Update serializer in `frontend/src/sdf/serializer.ts`
-5. Add rendering in `Viewport.tsx`
+---
+
+## File Locations
+
+```
+frontend/src/engine/
+├── events.ts                    # Event bus
+├── sceneGraphManager.ts        # Scene data
+├── commandSystem.ts            # Undo/redo
+└── editorEngine.ts             # Main API (use this!)
+```
+
+---
+
+## Pro Tips
+
+✅ **Always go through EditorEngine** - Never mutate scene directly
+✅ **Listen to events** - Don't poll for changes
+✅ **Unsubscribe on unmount** - Prevent memory leaks
+✅ **Use component state only for UI** - Never for scene data
+✅ **Test with undo/redo** - Verify all mutations work both ways
+
 6. Add display in `SceneTree.tsx`
 
 ### Store Access
