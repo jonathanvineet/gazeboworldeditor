@@ -2,30 +2,6 @@
 
 A professional **browser-based robotics simulation IDE** for creating and editing Gazebo `.world` and `.sdf` files. Comparable to Gazebo, Blender, and Unreal Engine in interface design and functionality.
 
-## 📚 Documentation
-
-All documentation is in the [`docs/`](docs/) folder:
-
-- **[README.md](docs/README.md)** — Project overview and features
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — System design and decisions  
-- **[DEVELOPMENT.md](docs/DEVELOPMENT.md)** — Implementation guide with code examples
-- **[PHASE0_COMPLETE.md](docs/PHASE0_COMPLETE.md)** — Phase 0 completion summary
-- **[QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** — Quick lookup guide
-
-## Quick Start
-
-```bash
-# Install
-npm install
-pip install -r backend/requirements.txt
-
-# Run
-npm run dev
-
-# Visit
-http://localhost:3000
-```
-
 ## Architecture
 
 This is NOT just "a Next.js app with Three.js". This is a full robotics simulation IDE built with professional architecture:
@@ -36,7 +12,7 @@ This is NOT just "a Next.js app with Three.js". This is a full robotics simulati
 - **Backend Separation** — FastAPI for robotics ecosystem
 - **Modular Components** — Viewport, panels, editor tightly integrated
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for comprehensive overview.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for comprehensive overview.
 
 ## Tech Stack
 
@@ -224,6 +200,13 @@ curl http://localhost:8000/api/fuel/search?q=warehouse
 - Three.js renderer uses instancing for primitives
 - Physics preview runs at reduced rate (not realtime)
 - Mesh loading is cached in IndexedDB
+
+## Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — System design and decisions
+- [DEVELOPMENT.md](DEVELOPMENT.md) — Implementation guide with code examples
+- [PHASE0_COMPLETE.md](PHASE0_COMPLETE.md) — Phase 0 completion summary
+- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) — Quick lookup guide for common tasks
 
 ## License
 
