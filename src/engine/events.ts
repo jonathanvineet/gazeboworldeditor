@@ -57,9 +57,9 @@ export type EditorEventType =
   | 'HISTORY_CHANGED'
 
 export interface EditorEventPayload {
-  ENTITY_CREATED: { entityId: string; type: string }
+  ENTITY_CREATED: { entityId: string; entity?: any; type: string }
   ENTITY_DELETED: { entityId: string }
-  ENTITY_SELECTED: { entityId: string }
+  ENTITY_SELECTED: { entityId: string; entity?: any }
   ENTITY_DESELECTED: { entityId: string }
   
   ENTITY_MOVED: { entityId: string; position: [number, number, number] }
@@ -70,22 +70,23 @@ export interface EditorEventPayload {
   MODEL_LOADED: { modelId: string }
   MESH_LOADED: { meshId: string; triangles: number }
   
-  SCENE_CHANGED: { timestamp: number }
+  SCENE_CHANGED: { world?: any; timestamp?: number }
   SCENE_SAVED: { path?: string }
-  SCENE_LOADED: { path?: string }
+  SCENE_LOADED: { world?: any; path?: string }
   
   SELECTION_CHANGED: { selectedIds: string[] }
+  SELECTION_CLEARED: { timestamp?: number }
   VIEW_MODE_CHANGED: { mode: 'visual' | 'collision' | 'wireframe' | 'physics' | 'sensors' | 'lighting' }
-  GIZMO_MODE_CHANGED: { mode: 'translate' | 'rotate' | 'scale' }
-  SPACE_MODE_CHANGED: { space: 'world' | 'local' }
+  GIZMO_MODE_CHANGED: { mode: 'move' | 'rotate' | 'scale' | 'translate' }
+  SPACE_MODE_CHANGED: { mode?: 'world' | 'local'; space?: 'world' | 'local' }
   
   XML_UPDATED: { xml: string }
   XML_PARSING_STARTED: { xml: string }
   XML_PARSING_COMPLETE: { success: boolean }
   XML_PARSING_ERROR: { error: string }
   
-  UNDO: { commandIndex: number }
-  REDO: { commandIndex: number }
+  UNDO: { description?: string; commandIndex?: number }
+  REDO: { description?: string; commandIndex?: number }
   HISTORY_CHANGED: { canUndo: boolean; canRedo: boolean }
 }
 

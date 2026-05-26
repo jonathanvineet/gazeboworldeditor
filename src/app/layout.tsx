@@ -1,21 +1,22 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  title: "Gazebo World Editor",
-  description: "Visual Gazebo .world / .sdf file editor running entirely in the browser",
-};
+  title: 'Gazebo Studio',
+  description: 'Professional browser-based robotics simulation IDE',
+  icons: {
+    icon: '/favicon.ico',
+  },
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en" className="dark">
-      <body className="antialiased bg-zinc-900 text-zinc-100 h-screen overflow-hidden">
-        {children}
-      </body>
+    <html lang="en">
+      <body className="bg-[#1e1e1e] text-[#cccccc]">{children}</body>
     </html>
-  );
+  )
 }

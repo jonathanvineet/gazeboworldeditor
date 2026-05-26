@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "next dev",
-    "dev:backend": "cd backend && python -m uvicorn app.main:app --reload --port 8000",
+    "dev:backend": "cd backend && python3 -m uvicorn app.main:app --reload --port 8000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -27,7 +27,8 @@
     "fast-xml-parser": "^5.5.7",
     "flexlayout-react": "^0.7.13",
     "jszip": "^3.10.1",
-    "leva": "^0.9.43",
+    "leva": "^0.9.35",
+    "lucide-react": "^1.16.0",
     "next": "16.2.0",
     "react": "19.2.4",
     "react-dnd": "^16.0.1",

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import {
   OrbitControls,
@@ -12,11 +12,17 @@ import {
 } from '@react-three/drei'
 import { useDrop } from 'react-dnd'
 import { useWorldStore } from '@/engine/worldStore'
+import { useEditorShortcuts } from '@/hooks/useEditorShortcuts'
+import { EntityLifecycleTest } from '@/components/EntityLifecycleTest'
 import type { AssetMetadata } from '@/lib/assetDatabase'
 
 export default function Viewport() {
   const { world } = useWorldStore()
   const [dropIndicator, setDropIndicator] = useState<[number, number, number] | null>(null)
+  const [showTest, setShowTest] = useState(true)
+
+  // Enable keyboard shortcuts (Ctrl+Z, Ctrl+Y, etc.)
+  useEditorShortcuts()
 
   // Accept drag-drop from asset browser
   const [{ isOver }, drop] = useDrop(() => ({
@@ -47,6 +53,7 @@ export default function Viewport() {
         w-full h-full
         transition-colors
         ${isOver ? 'bg-[#0e639c] bg-opacity-10' : ''}
+        relative
       `}
     >
       <Canvas shadows>
@@ -121,6 +128,40 @@ export default function Viewport() {
             Drop to spawn model
           </div>
         </div>
+      )}
+
+      {/* Entity Lifecycle Test Panel (temporary, for validation) */}
+      {showTest && (
+        <div className="absolute bottom-4 right-4 max-w-sm">
+          <EntityLifecycleTest />
+          <button
+            onClick={() => setShowTest(false)}
+            className="mt-2 text-xs text-gray-500 hover:text-gray-300"
+          >
+            Hide test panel
+          </button>
+        </div>
+      )}
+      {!showTest && (
+        <button
+          onClick={() => setShowTest(true)}
+          className="
+            absolute
+            bottom-4
+            right-4
+            px-2
+            py-1
+            text-xs
+            bg-gray-800
+            text-gray-400
+            hover:text-gray-200
+            rounded
+            border
+            border-gray-700
+          "
+        >
+          Show validation test
+        </button>
       )}
     </div>
   )
