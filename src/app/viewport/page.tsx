@@ -29,13 +29,8 @@ export default function ViewportPage() {
     // Get the singleton EditorEngine instance
     const editor = getEditorEngine()
 
-    // Initialize default world (ground plane, sun light, etc.)
-    // This is the ONLY way initialization should happen in React
-    editor.initializeDefaultWorld()
-
-    console.log('✓ EditorEngine initialized')
-    console.log('✓ World ready')
-    console.log('✓ Ready for entity lifecycle test')
+    // Call main initialization method
+    editor.initialize()
   }, [])
 
   return (

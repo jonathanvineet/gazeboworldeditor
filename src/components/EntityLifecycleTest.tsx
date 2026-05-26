@@ -43,11 +43,8 @@ export const EntityLifecycleTest: React.FC = () => {
       setLastCreatedId(entityId)
       setCreatedCount((prev) => prev + 1)
       setStatus(`Box created: ${entityId}`)
-      
-      console.log('[TEST] Box created:', entityId)
     } catch (error) {
       setStatus(`Error: ${(error as Error).message}`)
-      console.error('[TEST] Create failed:', error)
     }
   }, [])
 
@@ -60,11 +57,8 @@ export const EntityLifecycleTest: React.FC = () => {
       setLastCreatedId(entityId)
       setCreatedCount((prev) => prev + 1)
       setStatus(`Sphere created: ${entityId}`)
-      
-      console.log('[TEST] Sphere created:', entityId)
     } catch (error) {
       setStatus(`Error: ${(error as Error).message}`)
-      console.error('[TEST] Create failed:', error)
     }
   }, [])
 
@@ -73,10 +67,8 @@ export const EntityLifecycleTest: React.FC = () => {
       const engine = getEditorEngine()
       engine.undo()
       setStatus('Undo executed')
-      console.log('[TEST] Undo called')
     } catch (error) {
       setStatus(`Undo error: ${(error as Error).message}`)
-      console.error('[TEST] Undo failed:', error)
     }
   }, [])
 
@@ -85,10 +77,8 @@ export const EntityLifecycleTest: React.FC = () => {
       const engine = getEditorEngine()
       engine.redo()
       setStatus('Redo executed')
-      console.log('[TEST] Redo called')
     } catch (error) {
       setStatus(`Redo error: ${(error as Error).message}`)
-      console.error('[TEST] Redo failed:', error)
     }
   }, [])
 

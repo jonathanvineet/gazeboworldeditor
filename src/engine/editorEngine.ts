@@ -54,6 +54,14 @@ export class EditorEngine {
   }
 
   /**
+   * Main initialization entry point
+   * Called once from React useEffect on application startup
+   */
+  initialize(): void {
+    this.initializeDefaultWorld()
+  }
+
+  /**
    * ============================================================
    * INITIALIZATION API
    * ============================================================
