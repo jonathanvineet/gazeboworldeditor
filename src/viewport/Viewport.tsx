@@ -31,7 +31,7 @@ export default function Viewport() {
       const clientOffset = monitor.getClientOffset()
       if (clientOffset) {
         // TODO: Convert screen coordinates to world coordinates
-        console.log('Dropped asset:', asset.name, 'at', clientOffset)
+        // Asset drop handler
         setDropIndicator(null)
       }
     },

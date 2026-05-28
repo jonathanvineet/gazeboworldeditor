@@ -18,7 +18,6 @@ export default function ModelsLibrary() {
         setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load models list', err);
         setLoading(false);
       });
   }, []);

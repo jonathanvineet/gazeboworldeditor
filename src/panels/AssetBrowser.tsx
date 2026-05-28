@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Search } from 'lucide-react';
 import {
   ASSET_DATABASE,
@@ -29,8 +27,7 @@ export function AssetBrowser() {
   }, [searchQuery, selectedCategory]);
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="flex flex-col h-full bg-[#1e1e1e]">
+    <div className="flex flex-col h-full bg-[#1e1e1e]">
         {/* Header */}
         <div className={`${industrialClasses.panelHeader} border-b border-[#3e3e42]`}>
           <span className="text-xs font-semibold uppercase tracking-wide">
@@ -154,7 +151,6 @@ export function AssetBrowser() {
           <span>{filteredAssets.length} models</span>
           <span>Drag to viewport</span>
         </div>
-      </div>
-    </DndProvider>
+    </div>
   );
 }

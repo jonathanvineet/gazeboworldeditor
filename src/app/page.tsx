@@ -1,11 +1,12 @@
 'use client'
 
-import { useRef, useMemo, useEffect } from 'react'
+import { useRef, useMemo } from 'react'
 import { Layout, Model } from 'flexlayout-react'
 import 'flexlayout-react/style/light.css'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import { createLayoutModel, layoutColors } from '@/editor/layoutConfig'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
-import { useWorldStore } from '@/engine/worldStore'
 import Viewport from '@/viewport/Viewport'
 import SceneTree from '@/panels/SceneTree'
 import Inspector from '@/panels/Inspector'
@@ -24,18 +25,6 @@ export default function EditorPage() {
   // Enable keyboard shortcuts
   useKeyboardShortcuts()
 
-  // Add ground plane on mount if not already present
-  const addDefaultGroundPlane = useWorldStore((state) => {
-    useEffect(() => {
-      const store = useWorldStore.getState()
-      const hasGroundPlane = store.world.models.some((m) => m.name === 'ground_plane')
-      
-      if (!hasGroundPlane) {
-        // TODO: Add ground plane model to scene
-        console.log('Ground plane would be added here')
-      }
-    }, [])
-  })
 
   const factory = (node: any) => {
     const component = node.getComponent()
@@ -64,16 +53,18 @@ export default function EditorPage() {
     <div className="w-screen h-screen flex flex-col overflow-hidden">
       {/* Main editor layout */}
       <div className="flex-1 overflow-hidden">
-        {layoutModel && (
-          <Layout
-            ref={layoutRef}
-            model={layoutModel}
-            factory={factory}
-            onModelChange={() => {
-              // Persist layout to localStorage if needed
-            }}
-          />
-        )}
+        <DndProvider backend={HTML5Backend}>
+          {layoutModel && (
+            <Layout
+              ref={layoutRef}
+              model={layoutModel}
+              factory={factory}
+              onModelChange={() => {
+                // Persist layout to localStorage if needed
+              }}
+            />
+          )}
+        </DndProvider>
       </div>
 
       {/* Styling for layout components */}
