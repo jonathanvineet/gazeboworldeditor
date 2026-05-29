@@ -13,7 +13,6 @@ export const createLayoutModel = (): IJsonModel => ({
     tabSetEnableDeleteWhenEmpty: false,
     splitterSize: 4,
     splitterExtra: 0,
-    tabSetMode: 'top',
     borderEnableDrop: true,
   },
   borders: [
@@ -37,7 +36,7 @@ export const createLayoutModel = (): IJsonModel => ({
     weight: 100,
     children: [
       {
-        type: 'column',
+        type: 'row',
         weight: 20,
         children: [
           {
@@ -70,7 +69,7 @@ export const createLayoutModel = (): IJsonModel => ({
         ],
       },
       {
-        type: 'column',
+        type: 'row',
         weight: 60,
         children: [
           {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
+import * as THREE from 'three'
 import {
   OrbitControls,
   Grid,
@@ -13,6 +14,7 @@ import {
 import { useDrop } from 'react-dnd'
 import { useWorldStore } from '@/engine/worldStore'
 import { useEditorShortcuts } from '@/hooks/useEditorShortcuts'
+import { useThreeOptimization } from '@/hooks/useThreeOptimization'
 import { EntityLifecycleTest } from '@/components/EntityLifecycleTest'
 import type { AssetMetadata } from '@/lib/assetDatabase'
 
@@ -56,7 +58,17 @@ export default function Viewport() {
         relative
       `}
     >
-      <Canvas shadows>
+      <Canvas 
+        shadows
+        gl={{ 
+          antialias: true,
+          powerPreference: 'high-performance',
+          preserveDrawingBuffer: false,
+          shadowMap: {
+            type: THREE.PCFShadowMap,
+          },
+        }}
+      >
         {/* Camera */}
         <PerspectiveCamera
           makeDefault
@@ -169,6 +181,9 @@ export default function Viewport() {
 
 function SceneRenderer({ dropIndicator }: { dropIndicator: [number, number, number] | null }) {
   const { world, selectedEntity } = useWorldStore()
+  
+  // Configure Three.js and suppress deprecation warnings
+  useThreeOptimization()
 
   return (
     <>
