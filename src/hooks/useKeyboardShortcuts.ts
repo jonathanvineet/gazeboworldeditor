@@ -68,14 +68,7 @@ export function useKeyboardShortcuts() {
       if (e.key === 'Delete') {
         e.preventDefault();
         if (store.selectedEntity) {
-          console.log('Deleting entity:', store.selectedEntity);
-          // TODO: Implement delete with undo support
-          window.dispatchEvent(
-            new CustomEvent('entity-delete', {
-              detail: { entityId: store.selectedEntity },
-            })
-          );
-          store.selectEntity(undefined);
+          store.deleteEntityById(store.selectedEntity);
         }
       }
 

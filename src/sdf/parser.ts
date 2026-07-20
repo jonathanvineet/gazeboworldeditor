@@ -58,7 +58,7 @@ export class SDFParser {
     const scene = this.parseScene(worldData.scene)
 
     const models: ModelEntity[] = this.parseModels(worldData.model || [])
-    const lights: LightEntity[] = this.parseLight(worldData.light || [])
+    const lights: LightEntity[] = this.parseLights(worldData.light || [])
     const includes: IncludeEntity[] = this.parseIncludes(worldData.include || [])
 
     return {
@@ -78,7 +78,7 @@ export class SDFParser {
   private static parsePhysics(physicsData: any): PhysicsConfig {
     if (!physicsData) {
       return {
-        engine: "dart",
+        engine: "ode",
         gravity: [0, 0, -9.81],
         maxStepSize: 0.001,
         realTimeUpdateRate: 1000,
@@ -86,7 +86,7 @@ export class SDFParser {
       }
     }
 
-    const engine = physicsData["@_default"]?.split("::")[0] || "dart"
+    const engine = this.parseEngine(physicsData["@_type"])
     const gravity = this.parseVector3(
       physicsData.gravity || "0 0 -9.81"
     )
@@ -97,7 +97,7 @@ export class SDFParser {
       maxStepSize: parseFloat(physicsData.max_step_size) || 0.001,
       realTimeUpdateRate:
         parseFloat(physicsData.real_time_update_rate) || 1000,
-      defaultPhysics: { type: "ode" },
+      defaultPhysics: { type: engine },
     }
   }
 
@@ -130,7 +130,7 @@ export class SDFParser {
     const id = uuidv4()
     const name = modelData["@_name"] || "Unnamed Model"
     const pose = this.parsePose(modelData.pose)
-    const isStatic = modelData.static === 1 || modelData.static === "true"
+    const isStatic = this.parseBool(modelData.static, false)
 
     const links: LinkEntity[] = this.parseLinks(modelData.link || [])
     const joints: Joint[] = this.parseJoints(modelData.joint || [], links)
@@ -341,7 +341,7 @@ export class SDFParser {
     }
   }
 
-  private static parseLight(lightDataList: any[]): LightEntity[] {
+  private static parseLights(lightDataList: any[]): LightEntity[] {
     const lights = Array.isArray(lightDataList)
       ? lightDataList
       : lightDataList
@@ -359,6 +359,16 @@ export class SDFParser {
 
     const diffuse = this.parseColor(lightData.diffuse) || [1, 1, 1, 1]
     const specular = this.parseColor(lightData.specular) || [1, 1, 1, 1]
+    const direction = this.parseVector3(lightData.direction || "0 0 -1")
+    const castShadows = this.parseBool(lightData.cast_shadows, lightType !== "point")
+
+    const attData = lightData.attenuation || {}
+    const attenuation = {
+      constant: parseFloat(attData.constant) || 1,
+      linear: parseFloat(attData.linear) ?? 0.01,
+      quadratic: parseFloat(attData.quadratic) ?? 0.001,
+    }
+    const range = parseFloat(lightData.range) || 50
 
     if (lightType === "directional") {
       return {
@@ -371,8 +381,8 @@ export class SDFParser {
         locked: false,
         diffuse,
         specular,
-        direction: [0, 0, -1],
-        castShadows: true,
+        direction,
+        castShadows,
       }
     }
 
@@ -387,9 +397,9 @@ export class SDFParser {
         locked: false,
         diffuse,
         specular,
-        attenuation: { constant: 1, linear: 0.01, quadratic: 0.001 },
-        range: 50,
-        castShadows: false,
+        attenuation,
+        range,
+        castShadows,
       }
     }
 
@@ -403,13 +413,25 @@ export class SDFParser {
       locked: false,
       diffuse,
       specular,
-      direction: [0, 0, -1],
-      innerAngle: 0.1,
-      outerAngle: 0.5,
-      attenuation: { constant: 1, linear: 0.01, quadratic: 0.001 },
-      range: 50,
-      castShadows: true,
+      direction,
+      innerAngle: parseFloat(lightData.inner_angle) || 0.1,
+      outerAngle: parseFloat(lightData.outer_angle) || 0.5,
+      attenuation,
+      range,
+      castShadows,
     }
+  }
+
+  private static parseEngine(value: any): PhysicsConfig["engine"] {
+    const known: PhysicsConfig["engine"][] = ["ode", "bullet", "dart", "simbody"]
+    const str = String(value || "ode").toLowerCase()
+    return (known as string[]).includes(str) ? (str as PhysicsConfig["engine"]) : "ode"
+  }
+
+  private static parseBool(value: any, defaultValue: boolean): boolean {
+    if (value === undefined || value === null || value === "") return defaultValue
+    if (typeof value === "boolean") return value
+    return String(value).toLowerCase() === "true" || value === 1
   }
 
   private static parseIncludes(includeDataList: any[]): IncludeEntity[] {

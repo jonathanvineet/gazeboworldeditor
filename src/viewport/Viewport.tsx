@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Canvas, useThree } from '@react-three/fiber'
-import * as THREE from 'three'
+import { useCallback, useRef, useState } from 'react'
+import { Canvas } from '@react-three/fiber'
 import {
   OrbitControls,
   Grid,
@@ -10,21 +9,21 @@ import {
   GizmoViewport,
   Environment,
   PerspectiveCamera,
+  TransformControls,
 } from '@react-three/drei'
 import { useDrop } from 'react-dnd'
+import * as THREE from 'three'
 import { useWorldStore } from '@/engine/worldStore'
-import { useEditorShortcuts } from '@/hooks/useEditorShortcuts'
 import { useThreeOptimization } from '@/hooks/useThreeOptimization'
-import { EntityLifecycleTest } from '@/components/EntityLifecycleTest'
+import { createPatchCommand } from '@/engine/commands'
+import { withEntityPose, findEntity } from '@/engine/entityOps'
+import { ModelRenderer } from './ModelRenderer'
+import { LightRenderer } from './LightRenderer'
+import { SDF_TO_THREE_ROTATION } from './sdfToThree'
 import type { AssetMetadata } from '@/lib/assetDatabase'
 
 export default function Viewport() {
-  const { world } = useWorldStore()
   const [dropIndicator, setDropIndicator] = useState<[number, number, number] | null>(null)
-  const [showTest, setShowTest] = useState(true)
-
-  // Enable keyboard shortcuts (Ctrl+Z, Ctrl+Y, etc.)
-  useEditorShortcuts()
 
   // Accept drag-drop from asset browser
   const [{ isOver }, drop] = useDrop(() => ({
@@ -49,8 +48,8 @@ export default function Viewport() {
   }))
 
   return (
-    <div 
-      ref={drop}
+    <div
+      ref={(node) => { drop(node) }}
       className={`
         w-full h-full
         transition-colors
@@ -58,16 +57,14 @@ export default function Viewport() {
         relative
       `}
     >
-      <Canvas 
-        shadows
-        gl={{ 
+      <Canvas
+        shadows="soft"
+        gl={{
           antialias: true,
           powerPreference: 'high-performance',
           preserveDrawingBuffer: false,
-          shadowMap: {
-            type: THREE.PCFShadowMap,
-          },
         }}
+        onPointerMissed={() => useWorldStore.getState().selectEntity(undefined)}
       >
         {/* Camera */}
         <PerspectiveCamera
@@ -105,20 +102,13 @@ export default function Viewport() {
           fadeStrength={1}
         />
 
-        {/* Controls */}
-        <OrbitControls
-          makeDefault
-          enableDamping
-          dampingFactor={0.05}
-        />
+        {/* Scene Content */}
+        <SceneRenderer dropIndicator={dropIndicator} />
 
         {/* Gizmo Helper */}
         <GizmoHelper alignment="bottom-right">
           <GizmoViewport />
         </GizmoHelper>
-
-        {/* Scene Content */}
-        <SceneRenderer dropIndicator={dropIndicator} />
       </Canvas>
 
       {/* Drop indicator overlay */}
@@ -141,74 +131,101 @@ export default function Viewport() {
           </div>
         </div>
       )}
-
-      {/* Entity Lifecycle Test Panel (temporary, for validation) */}
-      {showTest && (
-        <div className="absolute bottom-4 right-4 max-w-sm">
-          <EntityLifecycleTest />
-          <button
-            onClick={() => setShowTest(false)}
-            className="mt-2 text-xs text-gray-500 hover:text-gray-300"
-          >
-            Hide test panel
-          </button>
-        </div>
-      )}
-      {!showTest && (
-        <button
-          onClick={() => setShowTest(true)}
-          className="
-            absolute
-            bottom-4
-            right-4
-            px-2
-            py-1
-            text-xs
-            bg-gray-800
-            text-gray-400
-            hover:text-gray-200
-            rounded
-            border
-            border-gray-700
-          "
-        >
-          Show validation test
-        </button>
-      )}
     </div>
   )
 }
 
 function SceneRenderer({ dropIndicator }: { dropIndicator: [number, number, number] | null }) {
-  const { world, selectedEntity } = useWorldStore()
-  
+  const { world, selectedEntity, mode } = useWorldStore()
+  const modelRefs = useRef<Record<string, THREE.Group | null>>({})
+  const [, forceUpdate] = useState(0)
+  const orbitRef = useRef<any>(null)
+  const draggingBeforeRef = useRef<{ position: [number, number, number]; rotation: [number, number, number] } | null>(null)
+
   // Configure Three.js and suppress deprecation warnings
   useThreeOptimization()
 
+  const selectEntity = useWorldStore((s) => s.selectEntity)
+
+  const setModelRef = useCallback((id: string) => (node: THREE.Group | null) => {
+    modelRefs.current[id] = node
+    forceUpdate((n) => n + 1)
+  }, [])
+
+  const selectedGroup = selectedEntity ? modelRefs.current[selectedEntity] : null
+  const selectedModel = selectedEntity ? world.models.find((m) => m.id === selectedEntity) : undefined
+
+  const handleTransformDown = () => {
+    if (orbitRef.current) orbitRef.current.enabled = false
+    if (selectedGroup) {
+      draggingBeforeRef.current = {
+        position: selectedGroup.position.toArray() as [number, number, number],
+        rotation: [selectedGroup.rotation.x, selectedGroup.rotation.y, selectedGroup.rotation.z],
+      }
+    }
+  }
+
+  const handleTransformUp = () => {
+    if (orbitRef.current) orbitRef.current.enabled = true
+    if (!selectedGroup || !selectedEntity || !draggingBeforeRef.current) return
+
+    const before = draggingBeforeRef.current
+    const afterPose = {
+      position: selectedGroup.position.toArray() as [number, number, number],
+      rotation: [selectedGroup.rotation.x, selectedGroup.rotation.y, selectedGroup.rotation.z] as [
+        number,
+        number,
+        number,
+      ],
+    }
+    draggingBeforeRef.current = null
+
+    const entity = findEntity(useWorldStore.getState().world, selectedEntity)
+    if (!entity) return
+
+    const command = createPatchCommand(
+      'transform-entity',
+      withEntityPose(useWorldStore.getState().world, selectedEntity, {
+        position: before.position,
+        rotation: before.rotation,
+      }),
+      withEntityPose(useWorldStore.getState().world, selectedEntity, afterPose)
+    )
+    useWorldStore.getState().executeCommand(command)
+  }
+
   return (
     <>
-      {world.models.map((model) => (
-        <ModelRenderer
-          key={model.id}
-          model={model}
-          isSelected={selectedEntity === model.id}
+      <group rotation={SDF_TO_THREE_ROTATION}>
+        {world.models.map((model) => (
+          <ModelRenderer
+            key={model.id}
+            model={model}
+            isSelected={selectedEntity === model.id}
+            onSelect={selectEntity}
+            groupRef={setModelRef(model.id)}
+          />
+        ))}
+        {world.lights.map((light) => (
+          <LightRenderer
+            key={light.id}
+            light={light}
+            isSelected={selectedEntity === light.id}
+            onSelect={selectEntity}
+          />
+        ))}
+      </group>
+
+      <OrbitControls ref={orbitRef} makeDefault enableDamping dampingFactor={0.05} />
+
+      {selectedModel && selectedGroup && mode !== 'none' && (
+        <TransformControls
+          object={selectedGroup}
+          mode={mode as 'translate' | 'rotate' | 'scale'}
+          onMouseDown={handleTransformDown}
+          onMouseUp={handleTransformUp}
         />
-      ))}
-      {world.lights.map((light) => (
-        <LightRenderer key={light.id} light={light} />
-      ))}
+      )}
     </>
   )
-}
-
-function ModelRenderer({ model, isSelected }: any) {
-  // Placeholder for model rendering
-  // TODO: Render links, visuals, collisions, joints
-  return null
-}
-
-function LightRenderer({ light }: any) {
-  // Placeholder for light rendering
-  // TODO: Render light helpers for preview
-  return null
 }

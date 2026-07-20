@@ -1,7 +1,6 @@
 /**
  * Professional Docking Layout Configuration
  * Using flexlayout-react for IDE-like interface
- * noppppeeeee
  */
 
 import { IJsonModel } from 'flexlayout-react'
@@ -92,7 +91,7 @@ export const createLayoutModel = (): IJsonModel => ({
         ],
       },
       {
-        type: 'column',
+        type: 'row',
         weight: 20,
         children: [
           {

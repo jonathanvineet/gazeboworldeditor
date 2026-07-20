@@ -20,7 +20,7 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
 
   return (
     <div
-      ref={drag}
+      ref={(node) => { drag(node) }}
       className="
         group
         relative

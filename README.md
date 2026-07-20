@@ -1,239 +1,64 @@
 # Gazebo Studio
 
-A professional **browser-based robotics simulation IDE** for creating and editing Gazebo `.world` and `.sdf` files. Comparable to Gazebo, Blender, and Unreal Engine in interface design and functionality.
-
-## 📚 Documentation
-
-All documentation is in the [`docs/`](docs/) folder:
-
-- **[README.md](docs/README.md)** — Project overview and features
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — System design and decisions  
-- **[DEVELOPMENT.md](docs/DEVELOPMENT.md)** — Implementation guide with code examples
-- **[PHASE0_COMPLETE.md](docs/PHASE0_COMPLETE.md)** — Phase 0 completion summary
-- **[QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md)** — Quick lookup guide
+A browser-based editor for Gazebo `.world` / `.sdf` files: build a scene visually, then download a real `.world` file to run in your own Gazebo install. No server-side simulation — this is an authoring tool, not a physics engine, which keeps it fully static and deployable to Vercel.
 
 ## Quick Start
 
 ```bash
-# Install
 npm install
-pip install -r backend/requirements.txt
-
-# Run
 npm run dev
-
-# Visit
-http://localhost:3000
 ```
+
+Visit http://localhost:3000
 
 ## Architecture
 
-This is NOT just "a Next.js app with Three.js". This is a full robotics simulation IDE built with professional architecture:
-
-- **Scene Graph as Source of Truth** — SDF graph, not Three.js objects
-- **Command Pattern** — Every action supports undo/redo
-- **Professional Docking Layout** — flexlayout-react for IDE-like interface
-- **Backend Separation** — FastAPI for robotics ecosystem
-- **Modular Components** — Viewport, panels, editor tightly integrated
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for comprehensive overview.
+- **Scene Graph as Source of Truth** — the SDF-derived `World` object in `src/engine/worldStore.ts`, not the Three.js scene
+- **Command Pattern** — mutations go through `src/engine/commands.ts` so undo/redo works
+- **Professional Docking Layout** — flexlayout-react for an IDE-like interface
+- **Everything client-side** — Fuel search is the one thing that needs a server hop (CORS), handled by a Next.js Route Handler (`src/app/api/fuel/*`), which deploys as a Vercel serverless function alongside the static app
 
 ## Tech Stack
 
-### Frontend
-- **Next.js 16** (App Router)
-- **TypeScript**
-- **Tailwind CSS** (dark theme - VS Code inspired)
-- **Three.js** + **@react-three/fiber** + **@react-three/drei**
-- **@react-three/rapier** (physics preview)
-- **Zustand** (state management with undo/redo)
-- **flexlayout-react** (professional docking)
-- **@monaco-editor/react** (XML editor)
-- **react-dnd** (drag & drop)
-- **@radix-ui** (accessible components)
-- **fast-xml-parser** + **xmlbuilder2** (SDF parsing/serialization)
-- **three-stdlib** (mesh loaders: DAE, STL, OBJ, GLTF)
-- **jszip** (ZIP model import)
-
-### Backend
-- **FastAPI** (Python)
-- **httpx** (Gazebo Fuel API)
-- **trimesh** (mesh processing)
-- **uvicorn** (ASGI server)
+- **Next.js 16** (App Router), **TypeScript**, **Tailwind CSS**
+- **Three.js** + **@react-three/fiber** + **@react-three/drei** for the viewport
+- **Zustand** for state (with undo/redo history)
+- **flexlayout-react** for the docking layout
+- **@monaco-editor/react** for the live XML editor
+- **react-dnd** for asset drag-and-drop
+- **fast-xml-parser** + **xmlbuilder2** for SDF parsing/serialization
+- **three-stdlib** for mesh loading (DAE, STL, OBJ, GLTF)
 
 ## Features
 
-✓ **Professional 3D Viewport** — Grid, HDRI, gizmo, orbit controls, selection, transform gizmos, wireframe, physics preview
+- 3D viewport: primitives (box/sphere/cylinder/plane/capsule/mesh), lights, click-to-select, transform gizmo (translate/rotate/scale), undo/redo
+- Scene tree: hierarchy with visibility/lock toggles and delete
+- Inspector: editable pose, static flag, and color for the selected entity
+- XML editor: live, two-way-synced Monaco editor (edit XML directly, or edit visually and watch the XML update)
+- Gazebo Fuel search (read-only browsing) via `/api/fuel/search`
+- Download the world as a real `.world` file
 
-✓ **Scene Tree** — Hierarchical entity list with visibility/lock toggles, drag-parenting, rename, duplicate, delete
+## Known limitations
 
-✓ **Inspector Panel** — Context-sensitive properties (model/light/sensor/link specific)
+- Fuel search results are informational only — dragging a Fuel model into the scene (download → resolve meshes → spawn) isn't wired up yet
+- `model://` mesh URIs can't be resolved in the browser (no resource server); only `file://`, `http(s)://`, and local blob URLs load
+- Only top-level entities (models/lights/includes) are selectable/editable — link- and joint-level editing isn't in the Inspector yet
 
-✓ **XML Editor** — Live sync with viewport, syntax highlighting
+## Deploying to Vercel
 
-✓ **Gazebo Fuel Integration** — Search and download models directly
-
-✓ **Multi-Format Import** — .sdf, .world, .urdf, .zip with mesh resolution
-
-✓ **Undo/Redo** — 50-level history with command architecture
-
-✓ **Mesh Loading** — DAE, STL, OBJ, GLTF, GLB with automatic format detection
-
-✓ **Material System** — Albedo, roughness, metalness, HDRI environments
-
-✓ **Physics Preview** — Gravity, collision, joints visualization
-
-✓ **Professional UI** — Dense, compact controls; VS Code/Unreal-inspired colors
-
-## Quick Start
-
-### Install
-
-```bash
-npm install
-pip install -r backend/requirements.txt
-```
-
-### Development
-
-```bash
-# Both frontend and backend
-npm run dev
-
-# Or separately:
-npm run dev:frontend    # http://localhost:3000
-npm run dev:backend     # http://localhost:8000
-```
-
-### Production
-
-```bash
-npm run build
-npm start
-```
-
-### Docker
-
-```bash
-docker-compose up
-# Frontend: http://localhost:3000
-# Backend: http://localhost:8000
-```
-
-## Project Structure
-
-```
-gazebo-studio/
-│
-├── frontend/
-│   ├── src/
-│   │   ├── app/              (Next.js layout, pages)
-│   │   ├── editor/           (Layout config, toolbar, keyboard shortcuts)
-│   │   ├── viewport/         (Three.js canvas, rendering)
-│   │   ├── panels/           (SceneTree, Inspector, XMLEditor, Console, AssetBrowser)
-│   │   ├── engine/           (Zustand store, commands)
-│   │   ├── sdf/              (Parser, serializer)
-│   │   ├── assets/           (Mesh loader, ZIP importer)
-│   │   ├── lib/              (Utilities, storage)
-│   │   ├── ui/               (Shared components)
-│   │   └── types/            (SDF type system)
-│   ├── public/               (Static assets, models)
-│   └── package.json
-│
-├── backend/
-│   ├── app/
-│   │   ├── main.py           (FastAPI app)
-│   │   ├── routes/           (API endpoints)
-│   │   ├── sdf/              (SDF utilities)
-│   │   ├── fuel/             (Gazebo Fuel integration)
-│   │   ├── assets/           (Asset management)
-│   │   └── meshes/           (Mesh processing)
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-└── docker-compose.yml
-```
-
-## Next Steps
-
-### Priority 1-5 (Core Functionality)
-1. **Viewport Component** — Full Three.js implementation with all features
-2. **Scene Tree** — Hierarchy management with drag-parenting
-3. **Inspector Panel** — Entity property editing
-4. **ZIP Importer** — Model asset loading
-5. **Install Dependencies** — `npm install` + `pip install`
-
-### Priority 6-10 (Advanced)
-6. XML Editor with live sync
-7. Physics preview
-8. Command/mutation architecture
-9. Asset browser with Fuel search
-10. Logging/console panel
-
-### Priority 11+ (Polish)
-11. Material system with HDRI
-12. Multi-selection operations
-13. Terrain system
-14. URDF import
-15. Collaborative editing
-
-## Development Guide
-
-### Adding a New Panel
-
-1. Create component in `frontend/src/panels/YourPanel.tsx`
-2. Import in `frontend/src/app/page.tsx`
-3. Add case in factory function
-4. Add layout config in `frontend/src/editor/layoutConfig.ts`
-
-### Modifying the SDF Type System
-
-1. Edit `frontend/src/types/sdf.ts`
-2. Both parser and serializer will automatically adapt
-3. Update store actions as needed
-
-### Running Mesh Conversion
-
-Backend can convert mesh formats:
-```bash
-curl -X POST http://localhost:8000/api/meshes/convert \
-  -F "file=@model.dae" \
-  -F "target_format=glb"
-```
-
-### Searching Gazebo Fuel
-
-```bash
-curl http://localhost:8000/api/fuel/search?q=warehouse
-```
+`npm run build` produces a fully static app plus two serverless functions (`/api/fuel/*`). No environment variables or external services are required. `.npmrc` sets `legacy-peer-deps=true` because `flexlayout-react`'s peer range hasn't caught up to React 19 yet — Vercel's build picks this up automatically.
 
 ## Keyboard Shortcuts
 
-- **T** — Translate mode
-- **R** — Rotate mode
-- **S** — Scale mode
-- **Ctrl+Z** — Undo
-- **Ctrl+Y** — Redo
-- **G** — Toggle grid
-- **L** — Toggle lights visualization
-- **W** — Toggle wireframe
-
-## Performance Notes
-
-- Scene graph is optimized for ~1000 entities
-- Three.js renderer uses instancing for primitives
-- Physics preview runs at reduced rate (not realtime)
-- Mesh loading is cached in IndexedDB
-
-## License
-
-MIT
+- **W** — Translate mode
+- **E** — Rotate mode
+- **R** — Scale mode
+- **F** — Focus on selected
+- **Delete** — Delete selected entity
+- **Ctrl+Z / Ctrl+Y** — Undo / redo
 
 ## Resources
 
 - [Gazebo Documentation](https://gazebosim.org/docs)
 - [SDF Format](http://sdformat.org/)
 - [Three.js Docs](https://threejs.org/docs/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Zustand](https://github.com/pmndrs/zustand)
-- [flexlayout-react](https://github.com/caplin/FlexLayout)

@@ -3,7 +3,10 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, Box, Sun, Link2, Eye, EyeOff, Lock, Trash2 } from 'lucide-react'
 import { useWorldStore } from '@/engine/worldStore'
+import { createPatchCommand } from '@/engine/commands'
+import { withModelPatch } from '@/engine/entityOps'
 import { industrialClasses } from '@/ui/industrialTheme'
+import type { LinkEntity, ModelEntity } from '@/types/sdf'
 
 export default function SceneTree() {
   const { world, selectedEntity, selectEntity } = useWorldStore()
@@ -47,6 +50,7 @@ export default function SceneTree() {
                   isExpanded={isExpanded(model.id)}
                   onSelect={() => selectEntity(model.id)}
                   onToggleExpanded={() => toggleExpanded(model.id)}
+                  onDelete={() => useWorldStore.getState().deleteEntityById(model.id)}
                 />
               ))}
             </div>
@@ -85,8 +89,48 @@ export default function SceneTree() {
   )
 }
 
-function ModelTreeNode({ model, isSelected, isExpanded, onSelect, onToggleExpanded }: any) {
+function ModelTreeNode({
+  model,
+  isSelected,
+  isExpanded,
+  onSelect,
+  onToggleExpanded,
+  onDelete,
+}: {
+  model: ModelEntity
+  isSelected: boolean
+  isExpanded: boolean
+  onSelect: () => void
+  onToggleExpanded: () => void
+  onDelete: () => void
+}) {
   const hasChildren = model.links.length > 0
+
+  const toggleVisible = () => {
+    const currentWorld = useWorldStore.getState().world
+    useWorldStore
+      .getState()
+      .executeCommand(
+        createPatchCommand(
+          'toggle-visible',
+          withModelPatch(currentWorld, model.id, { visible: model.visible }),
+          withModelPatch(currentWorld, model.id, { visible: !model.visible })
+        )
+      )
+  }
+
+  const toggleLocked = () => {
+    const currentWorld = useWorldStore.getState().world
+    useWorldStore
+      .getState()
+      .executeCommand(
+        createPatchCommand(
+          'toggle-locked',
+          withModelPatch(currentWorld, model.id, { locked: model.locked }),
+          withModelPatch(currentWorld, model.id, { locked: !model.locked })
+        )
+      )
+  }
 
   return (
     <div className="mb-0.5">
@@ -125,6 +169,7 @@ function ModelTreeNode({ model, isSelected, isExpanded, onSelect, onToggleExpand
         <button
           onClick={(e) => {
             e.stopPropagation()
+            toggleVisible()
           }}
           className="flex-shrink-0 p-0.5 hover:bg-[#3e3e42]"
         >
@@ -139,6 +184,7 @@ function ModelTreeNode({ model, isSelected, isExpanded, onSelect, onToggleExpand
         <button
           onClick={(e) => {
             e.stopPropagation()
+            toggleLocked()
           }}
           className="flex-shrink-0 p-0.5 hover:bg-[#3e3e42]"
         >
@@ -151,6 +197,7 @@ function ModelTreeNode({ model, isSelected, isExpanded, onSelect, onToggleExpand
         <button
           onClick={(e) => {
             e.stopPropagation()
+            onDelete()
           }}
           className="flex-shrink-0 p-0.5 hover:bg-[#f48771] hover:bg-opacity-20"
         >
@@ -161,7 +208,7 @@ function ModelTreeNode({ model, isSelected, isExpanded, onSelect, onToggleExpand
       {/* Children */}
       {hasChildren && isExpanded && (
         <div className="ml-2">
-          {model.links.map((link) => (
+          {model.links.map((link: LinkEntity) => (
             <LinkTreeNode key={link.id} link={link} parentId={model.id} />
           ))}
         </div>

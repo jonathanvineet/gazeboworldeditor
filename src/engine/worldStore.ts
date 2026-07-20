@@ -142,6 +142,7 @@ interface WorldStore extends EditorState {
   redo: () => void
   canUndo: () => boolean
   canRedo: () => boolean
+  deleteEntityById: (id: string) => void
 
   // Mode
   setMode: (mode: 'translate' | 'rotate' | 'scale' | 'none') => void
@@ -226,9 +227,9 @@ export const useWorldStore = create<WorldStore>((set, get) => ({
 
   // History
   executeCommand: (command: Command) => {
-    set((state) => {
-      command.execute()
+    command.execute()
 
+    set((state) => {
       // Remove any commands after current index
       const newHistory = state.history.slice(0, state.historyIndex + 1)
       newHistory.push(command)
@@ -283,6 +284,33 @@ export const useWorldStore = create<WorldStore>((set, get) => ({
   canRedo: () => {
     const state = get()
     return state.historyIndex < state.history.length - 1
+  },
+
+  deleteEntityById: (id: string) => {
+    const currentWorld = get().world
+    const before: Partial<World> = {
+      models: currentWorld.models,
+      lights: currentWorld.lights,
+      includes: currentWorld.includes,
+    }
+    const after: Partial<World> = {
+      models: currentWorld.models.filter((m) => m.id !== id),
+      lights: currentWorld.lights.filter((l) => l.id !== id),
+      includes: currentWorld.includes.filter((i) => i.id !== id),
+    }
+
+    get().executeCommand({
+      id: uuidv4(),
+      type: 'delete-entity',
+      timestamp: Date.now(),
+      execute: () => get().updateWorld(after),
+      undo: () => get().updateWorld(before),
+      redo: () => get().updateWorld(after),
+    })
+
+    if (get().selectedEntity === id) {
+      set({ selectedEntity: undefined, selectedEntities: [] })
+    }
   },
 
   // Mode

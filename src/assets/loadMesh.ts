@@ -9,7 +9,7 @@ import {
   OBJLoader,
   GLTFLoader,
 } from "three-stdlib"
-import { Group, Object3D } from "three"
+import { Group, Mesh, MeshStandardMaterial, Object3D } from "three"
 
 export class MeshLoader {
   private colladaLoader: ColladaLoader
@@ -69,9 +69,9 @@ export class MeshLoader {
       this.stlLoader.load(
         uri,
         (geometry) => {
-          const mesh = new Group()
-          // Create mesh from geometry
-          resolve(mesh)
+          const group = new Group()
+          group.add(new Mesh(geometry, new MeshStandardMaterial({ color: 0x999999 })))
+          resolve(group)
         },
         undefined,
         reject

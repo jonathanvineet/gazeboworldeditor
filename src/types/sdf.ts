@@ -369,7 +369,6 @@ export interface IncludeEntity extends BaseEntity {
   type: "include"
   
   uri: string // e.g., model://sun, model://warehouse/model.sdf
-  pose?: Pose
 }
 
 // ============================================================================

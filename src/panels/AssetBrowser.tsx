@@ -1,21 +1,30 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Loader2 } from 'lucide-react';
 import {
   ASSET_DATABASE,
   ASSET_CATEGORIES,
   searchAssets,
-  getAssetsByCategory,
 } from '@/lib/assetDatabase';
 import { AssetCard } from './AssetCard';
 import { industrialClasses } from '@/ui/industrialTheme';
 
+interface FuelModel {
+  name: string;
+  owner: string;
+  thumbnail_url?: string;
+  description?: string;
+}
+
 export function AssetBrowser() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [fuelResults, setFuelResults] = useState<FuelModel[]>([]);
+  const [fuelLoading, setFuelLoading] = useState(false);
+  const [fuelError, setFuelError] = useState<string | null>(null);
 
-  // Filter assets based on search and category
+  // Filter local primitive/mock assets based on search and category
   const filteredAssets = useMemo(() => {
     let results = searchQuery ? searchAssets(searchQuery) : ASSET_DATABASE;
 
@@ -25,6 +34,39 @@ export function AssetBrowser() {
 
     return results;
   }, [searchQuery, selectedCategory]);
+
+  // Query Gazebo Fuel for real models matching the search text
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFuelResults([]);
+      setFuelError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setFuelLoading(true);
+    setFuelError(null);
+
+    const timeout = setTimeout(() => {
+      fetch(`/api/fuel/search?q=${encodeURIComponent(searchQuery)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Fuel search failed');
+          return res.json();
+        })
+        .then((data) => setFuelResults(data.results ?? []))
+        .catch((err) => {
+          if (err.name !== 'AbortError') setFuelError('Could not reach Gazebo Fuel');
+        })
+        .finally(() => setFuelLoading(false));
+    }, 400);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [searchQuery]);
 
   return (
     <div className="flex flex-col h-full bg-[#1e1e1e]">
@@ -133,6 +175,38 @@ export function AssetBrowser() {
                 <div className="text-2xl mb-2">📭</div>
                 <div>No assets found</div>
               </div>
+            </div>
+          )}
+
+          {searchQuery.trim() && (
+            <div className="mt-4 pt-3 border-t border-[#3e3e42]">
+              <div className="flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wide text-[#858585]">
+                <span>Gazebo Fuel</span>
+                {fuelLoading && <Loader2 size={12} className="animate-spin" />}
+              </div>
+
+              {fuelError && (
+                <div className="text-xs text-[#f48771]">{fuelError}</div>
+              )}
+
+              {!fuelError && !fuelLoading && fuelResults.length === 0 && (
+                <div className="text-xs text-[#808080]">No Fuel models found</div>
+              )}
+
+              {fuelResults.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 auto-rows-max">
+                  {fuelResults.map((model) => (
+                    <div
+                      key={`${model.owner}/${model.name}`}
+                      className="bg-[#2d2d30] border border-[#3e3e42] rounded p-2 text-xs"
+                      title={model.description}
+                    >
+                      <div className="font-medium text-[#cccccc] truncate">{model.name}</div>
+                      <div className="text-[#808080] truncate">{model.owner}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
