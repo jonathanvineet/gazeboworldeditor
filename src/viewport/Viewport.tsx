@@ -53,7 +53,7 @@ export default function Viewport() {
       className={`
         w-full h-full
         transition-colors
-        ${isOver ? 'bg-[#0e639c] bg-opacity-10' : ''}
+        ${isOver ? 'bg-[#eaeaea] bg-opacity-10' : ''}
         relative
       `}
     >
@@ -74,8 +74,8 @@ export default function Viewport() {
         />
 
         {/* Background & Atmosphere */}
-        <color attach="background" args={['#1a1a1a']} />
-        <fog attach="fog" args={['#1a1a1a', 20, 60]} />
+        <color attach="background" args={['#050505']} />
+        <fog attach="fog" args={['#050505', 20, 60]} />
 
         {/* Lighting */}
         <ambientLight intensity={0.2} />
@@ -98,6 +98,8 @@ export default function Viewport() {
           args={[200, 200]}
           cellSize={0.5}
           sectionSize={5}
+          cellColor="#2a2a2a"
+          sectionColor="#4a4a4a"
           fadeDistance={100}
           fadeStrength={1}
         />
@@ -119,14 +121,14 @@ export default function Viewport() {
             inset-0
             border-2
             border-dashed
-            border-[#0e639c]
+            border-[#eaeaea]
             pointer-events-none
             flex
             items-center
             justify-center
           "
         >
-          <div className="text-sm text-[#0e639c] bg-black bg-opacity-50 px-3 py-1.5 rounded">
+          <div className="text-sm text-[#eaeaea] bg-black bg-opacity-50 px-3 py-1.5 rounded">
             Drop to spawn model
           </div>
         </div>
@@ -138,6 +140,7 @@ export default function Viewport() {
 function SceneRenderer({ dropIndicator }: { dropIndicator: [number, number, number] | null }) {
   const { world, selectedEntity, mode } = useWorldStore()
   const modelRefs = useRef<Record<string, THREE.Group | null>>({})
+  const refCallbacks = useRef<Record<string, (node: THREE.Group | null) => void>>({})
   const [, forceUpdate] = useState(0)
   const orbitRef = useRef<any>(null)
   const draggingBeforeRef = useRef<{ position: [number, number, number]; rotation: [number, number, number] } | null>(null)
@@ -147,9 +150,17 @@ function SceneRenderer({ dropIndicator }: { dropIndicator: [number, number, numb
 
   const selectEntity = useWorldStore((s) => s.selectEntity)
 
-  const setModelRef = useCallback((id: string) => (node: THREE.Group | null) => {
-    modelRefs.current[id] = node
-    forceUpdate((n) => n + 1)
+  // One stable ref-callback identity per model id, so attaching a group
+  // doesn't look like a "ref changed" event to React on every render.
+  const setModelRef = useCallback((id: string) => {
+    if (!refCallbacks.current[id]) {
+      refCallbacks.current[id] = (node: THREE.Group | null) => {
+        if (modelRefs.current[id] === node) return
+        modelRefs.current[id] = node
+        forceUpdate((n) => n + 1)
+      }
+    }
+    return refCallbacks.current[id]
   }, [])
 
   const selectedGroup = selectedEntity ? modelRefs.current[selectedEntity] : null

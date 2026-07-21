@@ -33,7 +33,7 @@ export function ModelRenderer({ model, isSelected, onSelect, groupRef }: ModelRe
                 geometry={visual.geometry}
                 material={
                   isSelected
-                    ? { ...visual.material, emissive: [0.2, 0.4, 0.9, 1] }
+                    ? { ...visual.material, emissive: [0.6, 0.6, 0.6, 1] }
                     : visual.material
                 }
                 castShadow={visual.castShadow}

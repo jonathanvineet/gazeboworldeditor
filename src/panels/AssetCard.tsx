@@ -24,18 +24,14 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
       className="
         group
         relative
-        bg-[#2d2d30]
-        border border-[#3e3e42]
-        rounded
+        bg-[#0b0b0b]
+        border border-[#232323]
         p-3
         cursor-grab
         active:cursor-grabbing
         transition-all
-        duration-200
-        hover:border-[#0e639c]
-        hover:shadow-lg
-        hover:shadow-[#0e639c]/30
-        hover:scale-105
+        duration-150
+        hover:border-[#eaeaea]
       "
       style={{
         opacity: isDragging ? 0.5 : 1,
@@ -48,14 +44,13 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
           items-center
           justify-center
           h-24
-          bg-[#1e1e1e]
-          border border-[#3e3e42]
-          rounded
+          bg-[#050505]
+          border border-[#232323]
           mb-2
           text-4xl
           font-bold
-          text-[#dcdcaa]
-          group-hover:bg-[#252526]
+          text-[#f2f2f2]
+          group-hover:bg-[#0e0e0e]
           transition-colors
         "
       >
@@ -65,28 +60,28 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
       {/* Metadata */}
       <div className="space-y-1 text-xs">
         {/* Name */}
-        <div className="text-[#cccccc] font-semibold truncate">
+        <div className="text-[#f2f2f2] font-semibold truncate">
           {asset.name}
         </div>
 
         {/* Category */}
-        <div className="text-[#ce9178] text-xs">
+        <div className="text-[#8a8a8a] text-xs font-mono">
           {asset.category.charAt(0).toUpperCase() + asset.category.slice(1)}
         </div>
 
         {/* Triangle count */}
-        <div className="text-[#9cdcfe] text-xs">
+        <div className="text-[#8a8a8a] text-xs font-mono">
           {asset.triangles.toLocaleString()} tris
         </div>
 
         {/* SDF Version */}
-        <div className="text-[#808080] text-xs">
+        <div className="text-[#525252] text-xs font-mono">
           SDF {asset.sdfVersion}
         </div>
 
         {/* Author */}
         {asset.author && (
-          <div className="text-[#808080] text-xs truncate">
+          <div className="text-[#525252] text-xs truncate">
             by {asset.author}
           </div>
         )}
@@ -101,11 +96,9 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
                   inline-block
                   px-1.5
                   py-0.5
-                  bg-[#0e639c]
-                  text-[#ffffff]
-                  rounded
+                  border border-[#2a2a2a]
+                  text-[#8a8a8a]
                   text-xs
-                  opacity-75
                 "
               >
                 {tag}
@@ -131,10 +124,9 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
         <button
           className="
             p-1
-            bg-[#0e639c]
-            text-white
-            rounded
-            hover:bg-[#1177bb]
+            bg-[#eaeaea]
+            text-[#050505]
+            hover:bg-white
             transition-colors
           "
           title="Import model"
@@ -146,10 +138,11 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
             onClick={() => onDelete(asset.id)}
             className="
               p-1
-              bg-[#d16969]
-              text-white
-              rounded
-              hover:bg-[#e81e1e]
+              bg-[#141414]
+              border border-[#ff5c5c]
+              text-[#ff5c5c]
+              hover:bg-[#ff5c5c]
+              hover:text-[#050505]
               transition-colors
             "
             title="Delete from library"
@@ -165,10 +158,11 @@ export function AssetCard({ asset, onDelete }: AssetCardProps) {
           absolute
           bottom-1
           right-1
-          text-[#808080]
+          text-[#525252]
           text-xs
+          font-mono
           opacity-0
-          group-hover:opacity-50
+          group-hover:opacity-70
           transition-opacity
           pointer-events-none
         "

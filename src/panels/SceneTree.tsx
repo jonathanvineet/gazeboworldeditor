@@ -35,7 +35,7 @@ export default function SceneTree() {
       <div className="flex-1 overflow-auto p-1">
         {/* World root */}
         <div className="mb-1">
-          <div className="px-1 py-0.5 text-xs text-[#cccccc] font-semibold">
+          <div className="px-1 py-0.5 text-xs text-[#f2f2f2] font-semibold">
             {world.name}
           </div>
 
@@ -146,13 +146,13 @@ function ModelTreeNode({
             e.stopPropagation()
             onToggleExpanded()
           }}
-          className="flex-shrink-0 p-0 hover:bg-[#3e3e42]"
+          className="flex-shrink-0 p-0 hover:bg-[#232323]"
         >
           {hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="w-3.5 h-3.5 text-[#858585]" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#8a8a8a]" />
             ) : (
-              <ChevronRight className="w-3.5 h-3.5 text-[#858585]" />
+              <ChevronRight className="w-3.5 h-3.5 text-[#8a8a8a]" />
             )
           ) : (
             <div className="w-3.5 h-3.5" />
@@ -160,7 +160,7 @@ function ModelTreeNode({
         </button>
 
         {/* Icon */}
-        <Box className="w-3.5 h-3.5 text-[#dcdcaa] flex-shrink-0" />
+        <Box className="w-3.5 h-3.5 text-[#d4d4d4] flex-shrink-0" />
 
         {/* Name */}
         <span className="flex-1 truncate">{model.name}</span>
@@ -171,12 +171,12 @@ function ModelTreeNode({
             e.stopPropagation()
             toggleVisible()
           }}
-          className="flex-shrink-0 p-0.5 hover:bg-[#3e3e42]"
+          className="flex-shrink-0 p-0.5 hover:bg-[#232323]"
         >
           {model.visible ? (
-            <Eye className="w-3 h-3 text-[#858585]" />
+            <Eye className="w-3 h-3 text-[#8a8a8a]" />
           ) : (
-            <EyeOff className="w-3 h-3 text-[#6a6a6a]" />
+            <EyeOff className="w-3 h-3 text-[#525252]" />
           )}
         </button>
 
@@ -186,10 +186,10 @@ function ModelTreeNode({
             e.stopPropagation()
             toggleLocked()
           }}
-          className="flex-shrink-0 p-0.5 hover:bg-[#3e3e42]"
+          className="flex-shrink-0 p-0.5 hover:bg-[#232323]"
         >
           {model.locked && (
-            <Lock className="w-3 h-3 text-[#858585]" />
+            <Lock className="w-3 h-3 text-[#8a8a8a]" />
           )}
         </button>
 
@@ -199,9 +199,9 @@ function ModelTreeNode({
             e.stopPropagation()
             onDelete()
           }}
-          className="flex-shrink-0 p-0.5 hover:bg-[#f48771] hover:bg-opacity-20"
+          className="flex-shrink-0 p-0.5 hover:bg-[#ff5c5c] hover:bg-opacity-20"
         >
-          <Trash2 className="w-3 h-3 text-[#6a6a6a] hover:text-[#f48771]" />
+          <Trash2 className="w-3 h-3 text-[#525252] hover:text-[#ff5c5c]" />
         </button>
       </div>
 
@@ -222,9 +222,9 @@ function LinkTreeNode({ link, parentId }: any) {
     <div className="mb-0.5">
       <div className={`flex items-center gap-1 px-1 py-0.5 text-xs ${industrialClasses.listItem}`}>
         <div className="w-3.5 h-3.5" />
-        <Link2 className="w-3.5 h-3.5 text-[#9cdcfe] flex-shrink-0" />
-        <span className="flex-1 truncate text-[#cccccc]">{link.name}</span>
-        <Eye className="w-3 h-3 text-[#858585]" />
+        <Link2 className="w-3.5 h-3.5 text-[#a8a8a8] flex-shrink-0" />
+        <span className="flex-1 truncate text-[#f2f2f2]">{link.name}</span>
+        <Eye className="w-3 h-3 text-[#8a8a8a]" />
       </div>
     </div>
   )
@@ -239,9 +239,9 @@ function LightTreeNode({ light, isSelected, onSelect }: any) {
       onClick={onSelect}
     >
       <div className="w-3.5 h-3.5" />
-      <Sun className="w-3.5 h-3.5 text-[#dcdcaa] flex-shrink-0" />
+      <Sun className="w-3.5 h-3.5 text-[#d4d4d4] flex-shrink-0" />
       <span className="flex-1 truncate">{light.name}</span>
-      <Eye className="w-3 h-3 text-[#858585]" />
+      <Eye className="w-3 h-3 text-[#8a8a8a]" />
     </div>
   )
 }
@@ -255,8 +255,8 @@ function IncludeTreeNode({ include, isSelected, onSelect }: any) {
       onClick={onSelect}
     >
       <div className="w-3.5 h-3.5" />
-      <Link2 className="w-3.5 h-3.5 text-[#ce9178] flex-shrink-0" />
-      <span className="flex-1 truncate text-[#858585]">{include.uri}</span>
+      <Link2 className="w-3.5 h-3.5 text-[#8a8a8a] flex-shrink-0" />
+      <span className="flex-1 truncate text-[#8a8a8a]">{include.uri}</span>
     </div>
   )
 }

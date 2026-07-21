@@ -8,16 +8,16 @@ export default function Console() {
   ]
 
   return (
-    <div className="w-full h-full bg-[#1e1e1e] font-mono text-xs overflow-auto p-2">
+    <div className="w-full h-full bg-[#050505] font-mono text-xs overflow-auto p-2">
       {logs.map((log, idx) => (
         <div
           key={idx}
           className={`py-1 ${
             log.includes('ERROR')
-              ? 'text-[#f48771]'
+              ? 'text-[#ff5c5c]'
               : log.includes('DEBUG')
-                ? 'text-[#858585]'
-                : 'text-[#6a9955]'
+                ? 'text-[#525252]'
+                : 'text-[#8a8a8a]'
           }`}
         >
           {log}

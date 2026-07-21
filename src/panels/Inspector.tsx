@@ -18,7 +18,7 @@ function NumberField({
 }) {
   return (
     <label className="flex items-center gap-1 text-xs">
-      <span className="w-4 text-[#858585]">{label}</span>
+      <span className="w-4 text-[#8a8a8a]">{label}</span>
       <input
         type="number"
         step={step}
@@ -31,7 +31,7 @@ function NumberField({
         onKeyDown={(e) => {
           if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
         }}
-        className="w-full bg-[#1e1e1e] border border-[#3e3e42] rounded px-1.5 py-1 text-[#cccccc] focus:outline-none focus:border-[#0e639c]"
+        className="w-full bg-[#050505] border border-[#2a2a2a] rounded px-1.5 py-1 text-[#f2f2f2] focus:outline-none focus:border-[#eaeaea]"
       />
     </label>
   )
@@ -41,7 +41,7 @@ function PoseEditor({ pose, onChange }: { pose: Pose; onChange: (pose: Pose) => 
   return (
     <div className="space-y-2">
       <div>
-        <div className="text-[10px] uppercase text-[#6a6a6a] mb-1">Position</div>
+        <div className="text-[10px] uppercase text-[#525252] mb-1">Position</div>
         <div className="grid grid-cols-3 gap-1">
           {(['x', 'y', 'z'] as const).map((axis, i) => (
             <NumberField
@@ -58,7 +58,7 @@ function PoseEditor({ pose, onChange }: { pose: Pose; onChange: (pose: Pose) => 
         </div>
       </div>
       <div>
-        <div className="text-[10px] uppercase text-[#6a6a6a] mb-1">Rotation (rad)</div>
+        <div className="text-[10px] uppercase text-[#525252] mb-1">Rotation (rad)</div>
         <div className="grid grid-cols-3 gap-1">
           {(['r', 'p', 'y'] as const).map((axis, i) => (
             <NumberField
@@ -84,7 +84,7 @@ export default function Inspector() {
 
   if (!selectedEntity) {
     return (
-      <div className="w-full h-full bg-[#252526] text-[#858585] flex items-center justify-center">
+      <div className="w-full h-full bg-[#0b0b0b] text-[#8a8a8a] flex items-center justify-center">
         <div className="text-sm">Select an entity to inspect</div>
       </div>
     )
@@ -104,7 +104,7 @@ export default function Inspector() {
   const findPose = (): Pose => (model ?? light ?? include)!.pose
 
   return (
-    <div className="w-full h-full bg-[#252526] text-[#cccccc] overflow-auto p-3 space-y-4">
+    <div className="w-full h-full bg-[#0b0b0b] text-[#f2f2f2] overflow-auto p-3 space-y-4">
       {model && (
         <>
           <div className="text-sm font-bold">📦 {model.name}</div>
@@ -129,14 +129,14 @@ export default function Inspector() {
             Static
           </label>
 
-          <div className="text-xs space-y-1 text-[#858585]">
+          <div className="text-xs space-y-1 text-[#8a8a8a]">
             <div>Links: {model.links.length}</div>
             <div>Joints: {model.joints.length}</div>
           </div>
 
           {model.links[0]?.visuals[0] && (
             <div>
-              <div className="text-[10px] uppercase text-[#6a6a6a] mb-1">Color</div>
+              <div className="text-[10px] uppercase text-[#525252] mb-1">Color</div>
               <input
                 type="color"
                 defaultValue={rgbToHex(
@@ -164,7 +164,7 @@ export default function Inspector() {
                     )
                   )
                 }}
-                className="w-full h-7 bg-[#1e1e1e] border border-[#3e3e42] rounded"
+                className="w-full h-7 bg-[#050505] border border-[#2a2a2a] rounded"
               />
             </div>
           )}
@@ -174,12 +174,12 @@ export default function Inspector() {
       {light && (
         <>
           <div className="text-sm font-bold">💡 {light.name}</div>
-          <div className="text-xs text-[#858585]">Type: {light.type}</div>
+          <div className="text-xs text-[#8a8a8a]">Type: {light.type}</div>
 
           <PoseEditor pose={light.pose} onChange={commitPose} />
 
           <div>
-            <div className="text-[10px] uppercase text-[#6a6a6a] mb-1">Color</div>
+            <div className="text-[10px] uppercase text-[#525252] mb-1">Color</div>
             <input
               type="color"
               defaultValue={rgbToHex(light.diffuse)}
@@ -194,7 +194,7 @@ export default function Inspector() {
                   )
                 )
               }}
-              className="w-full h-7 bg-[#1e1e1e] border border-[#3e3e42] rounded"
+              className="w-full h-7 bg-[#050505] border border-[#2a2a2a] rounded"
             />
           </div>
         </>
@@ -203,7 +203,7 @@ export default function Inspector() {
       {include && (
         <>
           <div className="text-sm font-bold">📍 {include.name}</div>
-          <div className="text-xs text-[#858585] break-all">URI: {include.uri}</div>
+          <div className="text-xs text-[#8a8a8a] break-all">URI: {include.uri}</div>
           <PoseEditor pose={include.pose} onChange={commitPose} />
         </>
       )}

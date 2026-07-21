@@ -126,12 +126,12 @@ export const componentFactory = (component: string, node: any) => {
 }
 
 export const layoutColors = {
-  primary: '#1e1e1e',
-  secondary: '#252526',
-  accent: '#3e3e42',
-  tertiary: '#2d2d30',
-  text: '#cccccc',
-  textSecondary: '#858585',
-  border: '#464647',
+  primary: '#050505',
+  secondary: '#0b0b0b',
+  accent: '#eaeaea',
+  tertiary: '#101010',
+  text: '#f2f2f2',
+  textSecondary: '#8a8a8a',
+  border: '#232323',
 }
 

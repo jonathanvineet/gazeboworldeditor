@@ -69,22 +69,52 @@ export default function EditorPage() {
 
       {/* Styling for layout components */}
       <style>{`
+        .flexlayout__layout {
+          background-color: ${layoutColors.primary};
+        }
         .flexlayout__border_inner {
           background-color: ${layoutColors.tertiary};
         }
-        .flexlayout__tab {
-          background-color: ${layoutColors.secondary};
+        .flexlayout__tabset_tabbar_outer {
+          background-color: ${layoutColors.tertiary};
           border-bottom: 1px solid ${layoutColors.border};
         }
-        .flexlayout__tab_active {
+        .flexlayout__tab {
+          background-color: ${layoutColors.primary};
+          border: 1px solid ${layoutColors.border};
+        }
+        .flexlayout__tab_button {
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-size: 11px;
+        }
+        .flexlayout__tab_button--selected,
+        .flexlayout__tab_button--selected .flexlayout__tab_button_content {
           background-color: ${layoutColors.accent};
-          color: ${layoutColors.text};
+          color: #050505;
         }
         .flexlayout__splitter {
           background-color: ${layoutColors.border};
         }
+        .flexlayout__splitter:hover {
+          background-color: ${layoutColors.accent};
+        }
         .flexlayout__tab_button_content {
           color: ${layoutColors.textSecondary};
+        }
+        .flexlayout__border {
+          background-color: ${layoutColors.tertiary};
+          border-color: ${layoutColors.border};
+        }
+        .flexlayout__border_button {
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-size: 11px;
+          color: ${layoutColors.textSecondary};
+        }
+        .flexlayout__border_button--selected {
+          background-color: ${layoutColors.accent};
+          color: #050505;
         }
       `}</style>
     </div>

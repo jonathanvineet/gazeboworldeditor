@@ -22,7 +22,7 @@ export function LightRenderer({ light, isSelected, onSelect }: LightRendererProp
       }}
     >
       <sphereGeometry args={[0.15, 12, 12]} />
-      <meshBasicMaterial color={isSelected ? '#4a90ff' : color} wireframe={!isSelected} />
+      <meshBasicMaterial color={isSelected ? '#eaeaea' : color} wireframe={!isSelected} />
     </mesh>
   )
 

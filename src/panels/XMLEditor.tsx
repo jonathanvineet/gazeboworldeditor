@@ -47,8 +47,8 @@ export default function XMLEditor() {
   }
 
   return (
-    <div className="w-full h-full bg-[#1e1e1e] flex flex-col">
-      <div className="flex items-center justify-between text-xs text-[#858585] p-2 border-b border-[#464647]">
+    <div className="w-full h-full bg-[#050505] flex flex-col">
+      <div className="flex items-center justify-between text-xs text-[#8a8a8a] p-2 border-b border-[#141414]">
         <div className="flex gap-2">
           <button
             onClick={() => {
@@ -59,23 +59,23 @@ export default function XMLEditor() {
                 setDirty(false)
               }
             }}
-            className="px-2 py-1 bg-[#464647] hover:bg-[#565656] rounded"
+            className="px-2 py-1 bg-[#141414] hover:bg-[#202020] rounded"
           >
             Apply
           </button>
           <button
             onClick={() => navigator.clipboard.writeText(editorRef.current?.getValue() ?? '')}
-            className="px-2 py-1 bg-[#464647] hover:bg-[#565656] rounded"
+            className="px-2 py-1 bg-[#141414] hover:bg-[#202020] rounded"
           >
             Copy to Clipboard
           </button>
         </div>
         {error ? (
-          <span className="text-[#f48771]">{error}</span>
+          <span className="text-[#ff5c5c]">{error}</span>
         ) : dirty ? (
-          <span className="text-[#dcdcaa]">Editing…</span>
+          <span className="text-[#8a8a8a]">Editing…</span>
         ) : (
-          <span className="text-[#4ec9b0]">Synced</span>
+          <span className="text-[#eaeaea]">Synced</span>
         )}
       </div>
       <div className="flex-1">

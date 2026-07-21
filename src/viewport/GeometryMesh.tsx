@@ -20,8 +20,7 @@ function buildMaterial(material?: MaterialConfig): THREE.Material {
     metalness: material?.metalness ?? 0,
     transparent: opacity < 1,
     opacity,
-    emissive,
-    emissiveIntensity: emissive ? 0.4 : 0,
+    ...(emissive ? { emissive, emissiveIntensity: 0.4 } : {}),
   })
 }
 
@@ -130,7 +129,7 @@ function MeshGeometryObject({
   }
 
   // Placeholder while loading / on failure, so the entity stays visible and selectable.
-  const threeMaterial = useMemo(() => buildMaterial(material ?? { albedo: [0.9, 0.4, 0.1, failed ? 0.5 : 1] }), [failed])
+  const threeMaterial = useMemo(() => buildMaterial(material ?? { albedo: [0.5, 0.5, 0.5, failed ? 0.4 : 1] }), [failed])
   return (
     <mesh material={threeMaterial} castShadow={castShadow ?? true} receiveShadow={receiveShadow ?? true}>
       <boxGeometry args={[scale[0], scale[1], scale[2]]} />
