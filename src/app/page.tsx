@@ -2,9 +2,7 @@
 
 import { useRef, useMemo } from 'react'
 import { Layout, Model } from 'flexlayout-react'
-import 'flexlayout-react/style/light.css'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
+import 'flexlayout-react/style/dark.css'
 import { createLayoutModel, layoutColors } from '@/editor/layoutConfig'
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts'
 import Viewport from '@/viewport/Viewport'
@@ -53,68 +51,66 @@ export default function EditorPage() {
     <div className="w-screen h-screen flex flex-col overflow-hidden">
       {/* Main editor layout */}
       <div className="flex-1 overflow-hidden">
-        <DndProvider backend={HTML5Backend}>
-          {layoutModel && (
-            <Layout
-              ref={layoutRef}
-              model={layoutModel}
-              factory={factory}
-              onModelChange={() => {
-                // Persist layout to localStorage if needed
-              }}
-            />
-          )}
-        </DndProvider>
+        {layoutModel && (
+          <Layout
+            ref={layoutRef}
+            model={layoutModel}
+            factory={factory}
+            onModelChange={() => {
+              // Persist layout to localStorage if needed
+            }}
+          />
+        )}
       </div>
 
-      {/* Styling for layout components */}
+      {/* Monochrome theme: drive flexlayout's own dark theme via its CSS
+          custom properties instead of fighting per-class overrides. */}
       <style>{`
         .flexlayout__layout {
-          background-color: ${layoutColors.primary};
-        }
-        .flexlayout__border_inner {
-          background-color: ${layoutColors.tertiary};
-        }
-        .flexlayout__tabset_tabbar_outer {
-          background-color: ${layoutColors.tertiary};
-          border-bottom: 1px solid ${layoutColors.border};
-        }
-        .flexlayout__tab {
-          background-color: ${layoutColors.primary};
-          border: 1px solid ${layoutColors.border};
+          --color-text: ${layoutColors.text};
+          --color-background: ${layoutColors.primary};
+          --color-base: ${layoutColors.primary};
+          --color-1: ${layoutColors.secondary};
+          --color-2: ${layoutColors.tertiary};
+          --color-3: #181818;
+          --color-4: #202020;
+          --color-5: #262626;
+          --color-6: #303030;
+          --font-family: var(--font-sans);
+          --color-icon: ${layoutColors.textSecondary};
+          --color-overflow: ${layoutColors.textSecondary};
+
+          --color-tabset-background: ${layoutColors.secondary};
+          --color-tabset-background-selected: ${layoutColors.secondary};
+          --color-tabset-header-background: ${layoutColors.tertiary};
+          --color-tabset-header: ${layoutColors.textSecondary};
+          --color-tabset-divider-line: ${layoutColors.border};
+
+          --color-tab-selected: #050505;
+          --color-tab-selected-background: ${layoutColors.accent};
+          --color-tab-unselected: ${layoutColors.textSecondary};
+          --color-tab-unselected-background: transparent;
+
+          --color-border-background: ${layoutColors.tertiary};
+          --color-border-divider-line: ${layoutColors.border};
+          --color-border-tab-selected: #050505;
+          --color-border-tab-selected-background: ${layoutColors.accent};
+          --color-border-tab-unselected: ${layoutColors.textSecondary};
+          --color-border-tab-unselected-background: ${layoutColors.tertiary};
+
+          --color-splitter: ${layoutColors.border};
+          --color-splitter-hover: ${layoutColors.accent};
+          --color-splitter-drag: ${layoutColors.accent};
         }
         .flexlayout__tab_button {
           text-transform: uppercase;
           letter-spacing: 0.05em;
           font-size: 11px;
         }
-        .flexlayout__tab_button--selected,
-        .flexlayout__tab_button--selected .flexlayout__tab_button_content {
-          background-color: ${layoutColors.accent};
-          color: #050505;
-        }
-        .flexlayout__splitter {
-          background-color: ${layoutColors.border};
-        }
-        .flexlayout__splitter:hover {
-          background-color: ${layoutColors.accent};
-        }
-        .flexlayout__tab_button_content {
-          color: ${layoutColors.textSecondary};
-        }
-        .flexlayout__border {
-          background-color: ${layoutColors.tertiary};
-          border-color: ${layoutColors.border};
-        }
         .flexlayout__border_button {
           text-transform: uppercase;
           letter-spacing: 0.05em;
           font-size: 11px;
-          color: ${layoutColors.textSecondary};
-        }
-        .flexlayout__border_button--selected {
-          background-color: ${layoutColors.accent};
-          color: #050505;
         }
       `}</style>
     </div>

@@ -49,6 +49,51 @@ export class SDFParser {
     return this.buildWorld(worldData)
   }
 
+  /**
+   * Parse a standalone `<sdf><model>...</model></sdf>` document — the format
+   * used by model repositories (e.g. gazebo_models, PX4-gazebo-models),
+   * as opposed to a full `.world` file.
+   *
+   * Composite models built from nested `<include>` elements (common for
+   * multi-part vehicles) have no visuals of their own; their direct-child
+   * include URIs are returned separately so the caller can resolve and
+   * merge them.
+   */
+  static parseStandaloneModel(xmlContent: string): { model: ModelEntity; nestedIncludeUris: string[] } {
+    const validation = XMLValidator.validate(xmlContent)
+    if (validation !== true) {
+      throw new Error(`Invalid XML: ${validation}`)
+    }
+
+    const json = parser.parse(xmlContent)
+    const modelData = json.sdf?.model || json.model
+
+    if (!modelData) {
+      throw new Error("No <model> root found in XML")
+    }
+
+    const model = this.parseModel(modelData)
+
+    const includeList = Array.isArray(modelData.include)
+      ? modelData.include
+      : modelData.include
+        ? [modelData.include]
+        : []
+    const nestedIncludeUris = includeList.map((inc: any) => String(inc.uri || "")).filter(Boolean)
+
+    return { model, nestedIncludeUris }
+  }
+
+  /** Merge a resolved nested model's links/joints/plugins into a parent composite model. */
+  static mergeModel(parent: ModelEntity, child: ModelEntity): ModelEntity {
+    return {
+      ...parent,
+      links: [...parent.links, ...child.links],
+      joints: [...parent.joints, ...child.joints],
+      plugins: [...parent.plugins, ...child.plugins],
+    }
+  }
+
   private static buildWorld(worldData: any): World {
     const id = uuidv4()
     const name = worldData["@_name"] || "Unnamed World"

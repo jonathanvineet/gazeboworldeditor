@@ -11,7 +11,6 @@ import {
   PerspectiveCamera,
   TransformControls,
 } from '@react-three/drei'
-import { useDrop } from 'react-dnd'
 import * as THREE from 'three'
 import { useWorldStore } from '@/engine/worldStore'
 import { useThreeOptimization } from '@/hooks/useThreeOptimization'
@@ -20,43 +19,10 @@ import { withEntityPose, findEntity } from '@/engine/entityOps'
 import { ModelRenderer } from './ModelRenderer'
 import { LightRenderer } from './LightRenderer'
 import { SDF_TO_THREE_ROTATION } from './sdfToThree'
-import type { AssetMetadata } from '@/lib/assetDatabase'
 
 export default function Viewport() {
-  const [dropIndicator, setDropIndicator] = useState<[number, number, number] | null>(null)
-
-  // Accept drag-drop from asset browser
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: 'asset',
-    drop: (asset: AssetMetadata, monitor) => {
-      const clientOffset = monitor.getClientOffset()
-      if (clientOffset) {
-        // TODO: Convert screen coordinates to world coordinates
-        // Asset drop handler
-        setDropIndicator(null)
-      }
-    },
-    hover: (asset, monitor) => {
-      const clientOffset = monitor.getClientOffset()
-      if (clientOffset) {
-        setDropIndicator([clientOffset.x, clientOffset.y, 0])
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  }))
-
   return (
-    <div
-      ref={(node) => { drop(node) }}
-      className={`
-        w-full h-full
-        transition-colors
-        ${isOver ? 'bg-[#eaeaea] bg-opacity-10' : ''}
-        relative
-      `}
-    >
+    <div className="w-full h-full relative">
       <Canvas
         shadows="soft"
         gl={{
@@ -105,39 +71,18 @@ export default function Viewport() {
         />
 
         {/* Scene Content */}
-        <SceneRenderer dropIndicator={dropIndicator} />
+        <SceneRenderer />
 
         {/* Gizmo Helper */}
         <GizmoHelper alignment="bottom-right">
           <GizmoViewport />
         </GizmoHelper>
       </Canvas>
-
-      {/* Drop indicator overlay */}
-      {isOver && (
-        <div
-          className="
-            absolute
-            inset-0
-            border-2
-            border-dashed
-            border-[#eaeaea]
-            pointer-events-none
-            flex
-            items-center
-            justify-center
-          "
-        >
-          <div className="text-sm text-[#eaeaea] bg-black bg-opacity-50 px-3 py-1.5 rounded">
-            Drop to spawn model
-          </div>
-        </div>
-      )}
     </div>
   )
 }
 
-function SceneRenderer({ dropIndicator }: { dropIndicator: [number, number, number] | null }) {
+function SceneRenderer() {
   const { world, selectedEntity, mode } = useWorldStore()
   const modelRefs = useRef<Record<string, THREE.Group | null>>({})
   const refCallbacks = useRef<Record<string, (node: THREE.Group | null) => void>>({})

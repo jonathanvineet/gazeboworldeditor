@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import { GeometryType, MaterialConfig } from '@/types/sdf'
 import { meshLoader } from '@/assets/loadMesh'
+import { resolveMeshUri } from '@/engine/resourceResolver'
 
 function buildMaterial(material?: MaterialConfig): THREE.Material {
   const albedo = material?.albedo ?? material?.diffuse
@@ -55,6 +56,14 @@ interface GeometryMeshProps {
 }
 
 export function GeometryMesh({ geometry, material, castShadow, receiveShadow }: GeometryMeshProps) {
+  // Hooks must run unconditionally every render (geometry.type can change
+  // for the same component slot), so build primitives even when unused.
+  const threeGeometry = useMemo(
+    () => (geometry.type === 'mesh' ? null : buildGeometry(geometry)),
+    [JSON.stringify(geometry)]
+  )
+  const threeMaterial = useMemo(() => buildMaterial(material), [JSON.stringify(material)])
+
   if (geometry.type === 'mesh') {
     return (
       <MeshGeometryObject
@@ -67,13 +76,11 @@ export function GeometryMesh({ geometry, material, castShadow, receiveShadow }: 
     )
   }
 
-  const threeGeometry = useMemo(() => buildGeometry(geometry), [JSON.stringify(geometry)])
-  const threeMaterial = useMemo(() => buildMaterial(material), [JSON.stringify(material)])
   const isPlane = geometry.type === 'plane'
 
   return (
     <mesh
-      geometry={threeGeometry}
+      geometry={threeGeometry!}
       material={threeMaterial}
       rotation={isPlane ? [-Math.PI / 2, 0, 0] : undefined}
       castShadow={castShadow ?? true}
@@ -103,15 +110,17 @@ function MeshGeometryObject({
     setObject(null)
     setFailed(false)
 
-    // model:// URIs need a resource server to resolve; only attempt
-    // loading for URIs the browser can actually fetch directly.
-    if (uri.startsWith('model://')) {
+    // model:// URIs need a resource server to resolve; fall back to a
+    // known raw-content mirror if this model came from the catalog import,
+    // otherwise there's nothing the browser can fetch directly.
+    const resolved = resolveMeshUri(uri)
+    if (resolved.startsWith('model://')) {
       setFailed(true)
       return
     }
 
     meshLoader
-      .loadMesh(uri)
+      .loadMesh(resolved)
       .then((obj) => {
         if (!cancelled) setObject(obj)
       })
@@ -124,12 +133,17 @@ function MeshGeometryObject({
     }
   }, [uri])
 
+  // Placeholder material while loading / on failure, so the entity stays
+  // visible and selectable even before/without a real mesh.
+  const threeMaterial = useMemo(
+    () => buildMaterial(material ?? { albedo: [0.5, 0.5, 0.5, failed ? 0.4 : 1] }),
+    [failed]
+  )
+
   if (object) {
     return <primitive object={object} scale={scale} />
   }
 
-  // Placeholder while loading / on failure, so the entity stays visible and selectable.
-  const threeMaterial = useMemo(() => buildMaterial(material ?? { albedo: [0.5, 0.5, 0.5, failed ? 0.4 : 1] }), [failed])
   return (
     <mesh material={threeMaterial} castShadow={castShadow ?? true} receiveShadow={receiveShadow ?? true}>
       <boxGeometry args={[scale[0], scale[1], scale[2]]} />

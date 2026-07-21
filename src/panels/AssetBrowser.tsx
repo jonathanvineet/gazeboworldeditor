@@ -1,185 +1,174 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Loader2 } from 'lucide-react';
-import {
-  ASSET_DATABASE,
-  ASSET_CATEGORIES,
-  searchAssets,
-} from '@/lib/assetDatabase';
-import { AssetCard } from './AssetCard';
+import { Search, Loader2, Download, ExternalLink } from 'lucide-react';
 import { industrialClasses } from '@/ui/industrialTheme';
+import { importCatalogModel } from '@/engine/importCatalogModel';
+import type { CatalogEntry } from '@/app/api/models/catalog/route';
 
-interface FuelModel {
-  name: string;
-  owner: string;
-  thumbnail_url?: string;
-  description?: string;
-}
+const SOURCE_FILTERS: { id: CatalogEntry['source'] | null; label: string }[] = [
+  { id: null, label: 'All' },
+  { id: 'gazebo_models', label: 'Gazebo Models' },
+  { id: 'px4', label: 'PX4' },
+];
 
 export function AssetBrowser() {
+  const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
+  const [catalogState, setCatalogState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [fuelResults, setFuelResults] = useState<FuelModel[]>([]);
-  const [fuelLoading, setFuelLoading] = useState(false);
-  const [fuelError, setFuelError] = useState<string | null>(null);
+  const [selectedSource, setSelectedSource] = useState<CatalogEntry['source'] | null>(null);
+  const [importingId, setImportingId] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
-  // Filter local primitive/mock assets based on search and category
-  const filteredAssets = useMemo(() => {
-    let results = searchQuery ? searchAssets(searchQuery) : ASSET_DATABASE;
-
-    if (selectedCategory) {
-      results = results.filter((asset) => asset.category === selectedCategory);
-    }
-
-    return results;
-  }, [searchQuery, selectedCategory]);
-
-  // Query Gazebo Fuel for real models matching the search text
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFuelResults([]);
-      setFuelError(null);
-      return;
-    }
-
-    const controller = new AbortController();
-    setFuelLoading(true);
-    setFuelError(null);
-
-    const timeout = setTimeout(() => {
-      fetch(`/api/fuel/search?q=${encodeURIComponent(searchQuery)}`, {
-        signal: controller.signal,
+    fetch('/api/models/catalog')
+      .then((res) => {
+        if (!res.ok) throw new Error('catalog fetch failed');
+        return res.json();
       })
-        .then((res) => {
-          if (!res.ok) throw new Error('Fuel search failed');
-          return res.json();
-        })
-        .then((data) => setFuelResults(data.results ?? []))
-        .catch((err) => {
-          if (err.name !== 'AbortError') setFuelError('Could not reach Gazebo Fuel');
-        })
-        .finally(() => setFuelLoading(false));
-    }, 400);
+      .then((data) => {
+        setCatalog(data.entries ?? []);
+        setCatalogState('ready');
+      })
+      .catch(() => setCatalogState('error'));
+  }, []);
 
-    return () => {
-      controller.abort();
-      clearTimeout(timeout);
-    };
-  }, [searchQuery]);
+  const filtered = useMemo(() => {
+    let results = catalog;
+    if (selectedSource) {
+      results = results.filter((entry) => entry.source === selectedSource);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      results = results.filter((entry) => entry.name.toLowerCase().includes(q));
+    }
+    return results.slice(0, 120);
+  }, [catalog, selectedSource, searchQuery]);
+
+  const handleImport = async (entry: CatalogEntry) => {
+    setImportingId(entry.id);
+    setImportError(null);
+    try {
+      await importCatalogModel(entry, catalog);
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : `Could not import ${entry.name}`);
+    } finally {
+      setImportingId(null);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#050505]">
-        {/* Header */}
-        <div className={industrialClasses.panelHeader}>
-          Asset Library
-        </div>
+      {/* Header */}
+      <div className={industrialClasses.panelHeader}>Model Library</div>
 
-        {/* Search Bar */}
-        <div className="p-2 border-b border-[#232323] bg-[#0b0b0b]">
-          <div className="relative">
-            <Search
-              size={14}
-              className="absolute left-2.5 top-2.5 text-[#525252]"
-            />
-            <input
-              type="text"
-              placeholder="Search models..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-7 pr-3 py-1.5 text-xs bg-[#0a0a0a] border border-[#2a2a2a] text-[#f2f2f2] placeholder-[#525252] focus:outline-none focus:border-[#eaeaea]"
-            />
-          </div>
+      {/* Search Bar */}
+      <div className="p-2 border-b border-[#232323] bg-[#0b0b0b]">
+        <div className="relative">
+          <Search size={14} className="absolute left-2.5 top-2.5 text-[#525252]" />
+          <input
+            type="text"
+            placeholder="Search real Gazebo / PX4 models…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-7 pr-3 py-1.5 text-xs bg-[#0a0a0a] border border-[#2a2a2a] text-[#f2f2f2] placeholder-[#525252] focus:outline-none focus:border-[#eaeaea]"
+          />
         </div>
+      </div>
 
-        {/* Category Tabs */}
-        <div className="px-2 py-2 border-b border-[#232323] bg-[#0b0b0b] overflow-x-auto">
-          <div className="flex gap-1 min-w-min">
+      {/* Source Tabs */}
+      <div className="px-2 py-2 border-b border-[#232323] bg-[#0b0b0b] overflow-x-auto">
+        <div className="flex gap-1 min-w-min">
+          {SOURCE_FILTERS.map((f) => (
             <button
-              onClick={() => setSelectedCategory(null)}
+              key={f.label}
+              onClick={() => setSelectedSource(f.id)}
               className={`px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === null
+                selectedSource === f.id
                   ? 'bg-[#eaeaea] text-[#050505]'
                   : 'bg-[#141414] text-[#8a8a8a] hover:bg-[#202020] hover:text-[#f2f2f2]'
               }`}
             >
-              All
+              {f.label}
             </button>
-
-            {ASSET_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                  selectedCategory === cat.id
-                    ? 'bg-[#eaeaea] text-[#050505]'
-                    : 'bg-[#141414] text-[#8a8a8a] hover:bg-[#202020] hover:text-[#f2f2f2]'
-                }`}
-              >
-                <span>{cat.icon}</span>
-                <span>{cat.label}</span>
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
+      </div>
 
-        {/* Asset Grid */}
-        <div className="flex-1 overflow-y-auto p-2">
-          {filteredAssets.length > 0 ? (
+      {/* Catalog Grid */}
+      <div className="flex-1 overflow-y-auto p-2">
+        {catalogState === 'loading' && (
+          <div className="flex items-center justify-center h-32 text-[#525252] text-xs gap-2">
+            <Loader2 size={14} className="animate-spin" />
+            Loading catalog from GitHub…
+          </div>
+        )}
+
+        {catalogState === 'error' && (
+          <div className="flex items-center justify-center h-32 text-[#ff5c5c] text-xs text-center px-4">
+            Could not load the model catalog. Check your connection and reload.
+          </div>
+        )}
+
+        {catalogState === 'ready' && (
+          <>
+            <div className="text-[11px] text-[#525252] mb-2 font-mono">
+              {filtered.length} of {catalog.length} models
+            </div>
             <div className="grid grid-cols-2 gap-2 auto-rows-max">
-              {filteredAssets.map((asset) => (
-                <AssetCard key={asset.id} asset={asset} />
+              {filtered.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="group relative bg-[#0b0b0b] border border-[#232323] hover:border-[#eaeaea] transition-colors p-3"
+                >
+                  <div className="text-xs font-semibold text-[#f2f2f2] truncate">{entry.name}</div>
+                  <div className="text-[11px] font-mono text-[#525252] mt-0.5">{entry.sourceLabel}</div>
+
+                  <div className="flex items-center gap-1 mt-2">
+                    <button
+                      onClick={() => handleImport(entry)}
+                      disabled={importingId === entry.id}
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1 text-[11px] bg-[#141414] border border-[#2a2a2a] hover:bg-[#eaeaea] hover:text-[#050505] hover:border-[#eaeaea] transition-colors disabled:opacity-50"
+                      title={`Import ${entry.name} into the scene`}
+                    >
+                      {importingId === entry.id ? (
+                        <Loader2 size={11} className="animate-spin" />
+                      ) : (
+                        <Download size={11} />
+                      )}
+                      Import
+                    </button>
+                    <a
+                      href={entry.sdfUrl.replace('raw.githubusercontent.com', 'github.com').replace(/\/(master|main)\//, '/blob/$1/')}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1 text-[#525252] hover:text-[#f2f2f2] transition-colors"
+                      title="View source on GitHub"
+                    >
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                </div>
               ))}
             </div>
-          ) : (
-            <div className="flex items-center justify-center h-32 text-[#525252] text-xs">
-              <div className="text-center">
-                <div className="text-2xl mb-2 opacity-40">∅</div>
-                <div>No assets found</div>
+
+            {filtered.length === 0 && (
+              <div className="flex items-center justify-center h-32 text-[#525252] text-xs">
+                No models match &ldquo;{searchQuery}&rdquo;
               </div>
-            </div>
-          )}
+            )}
+          </>
+        )}
 
-          {searchQuery.trim() && (
-            <div className="mt-4 pt-3 border-t border-[#232323]">
-              <div className="flex items-center gap-2 mb-2 text-[11px] font-medium uppercase tracking-wider text-[#8a8a8a]">
-                <span>Gazebo Fuel</span>
-                {fuelLoading && <Loader2 size={12} className="animate-spin" />}
-              </div>
+        {importError && (
+          <div className="mt-3 text-xs text-[#ff5c5c] border-t border-[#232323] pt-2">{importError}</div>
+        )}
+      </div>
 
-              {fuelError && (
-                <div className="text-xs text-[#ff5c5c]">{fuelError}</div>
-              )}
-
-              {!fuelError && !fuelLoading && fuelResults.length === 0 && (
-                <div className="text-xs text-[#525252]">No Fuel models found</div>
-              )}
-
-              {fuelResults.length > 0 && (
-                <div className="grid grid-cols-2 gap-2 auto-rows-max">
-                  {fuelResults.map((model) => (
-                    <div
-                      key={`${model.owner}/${model.name}`}
-                      className="bg-[#0b0b0b] border border-[#232323] p-2 text-xs"
-                      title={model.description}
-                    >
-                      <div className="font-medium text-[#f2f2f2] truncate">{model.name}</div>
-                      <div className="text-[#525252] truncate font-mono">{model.owner}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer Stats */}
-        <div
-          className={`${industrialClasses.panelHeader} border-t border-[#232323] flex justify-between normal-case tracking-normal`}
-        >
-          <span>{filteredAssets.length} models</span>
-          <span>Drag to viewport</span>
-        </div>
+      {/* Footer */}
+      <div className={`${industrialClasses.panelHeader} border-t border-[#232323] flex justify-between normal-case tracking-normal`}>
+        <span>osrf/gazebo_models + PX4/PX4-gazebo-models</span>
+      </div>
     </div>
   );
 }
